@@ -3,8 +3,8 @@ Fuzz 403ing endpoints for bypasses
 
 This tool will check the endpoint with a couple of headers such as `X-Forwarded-For`
 
-It will also apply different payloads typicvally used in dir traversals, path normalization etc to each endpoint on the path.
-<br> e.g. `/%2e/test/test2` `/test/%2e/test2`
+It will also apply different payloads typically used in dir traversals, path normalization etc. to each endpoint on the path.
+<br> e.g. `/%2e/test/test2` `/test/%2e/test2` `/test;/test2/`
 
 # Usage
 ```bash
