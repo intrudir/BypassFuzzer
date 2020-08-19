@@ -1,6 +1,8 @@
 # 403fuzzer
 Fuzz 403ing endpoints for bypasses
 
+## If this helped you get a bounty plz give me a shoutout! @intrudir
+
 This tool will check the endpoint with a couple of headers such as `X-Forwarded-For`
 
 It will also apply different payloads typically used in dir traversals, path normalization etc. to each endpoint on the path.
