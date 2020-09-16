@@ -154,18 +154,16 @@ query = parsed.query  # param1=1param2=2
 pathPieces = ' '.join(parsed.path.split('/')).split()  # ['some', 'path']
 finalUrls = setup_payloads(parsed, pathPieces, query)
 
-#send_headers(url, headers, cookies, proxies, path)
+send_headers(url, headers, cookies, proxies, path)
 
 s = requests.Session()
 s.proxies = proxies
 for url in finalUrls:
     resp_code, resp_text = send_payloads(s, url, cookies, proxies, hide)
 
-#    if query:
-#        path += "?{}".format(query)
     MSG = "Response code: {}   Response length: {}   Path: {}\n".format(resp_code, len(resp_text), path)
 
     if hide["hc"] != str(resp_code) and hide["hl"] != str(len(resp_text)):
         print(MSG)
 
-#send_options(url, cookies, proxies)
+send_options(url, cookies, proxies)
