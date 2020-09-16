@@ -29,7 +29,7 @@ optional arguments:
 
 ## Basic examples
 ```bash
-python3 403fuzzer.py --url http://example.com/test1/test2/test3/forbidden.html
+python3 403fuzzer.py -url http://example.com/test1/test2/test3/forbidden.html
 ```
 ![image](https://user-images.githubusercontent.com/24526564/90268769-7ec1ae80-de25-11ea-859f-6d49593a0608.png)
 <br>
