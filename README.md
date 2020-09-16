@@ -1,7 +1,7 @@
 # 403fuzzer
 Fuzz 403ing endpoints for bypasses
 
-## If this helped you get a bounty plz give me a shoutout! @intrudir
+## Follow me on twitter! @intrudir
 
 This tool will check the endpoint with a couple of headers such as `X-Forwarded-For`
 
