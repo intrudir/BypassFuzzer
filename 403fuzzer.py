@@ -84,7 +84,7 @@ def send_header_payloads(url, headers, cookies, proxies, h, p):
     return resp.status_code, resp.text
 
 
-def send_url_payloads(s, url, cookies, proxies, hide):
+def send_url_payloads(s, url, cookies, proxies):
     r = requests.Request("GET", url, cookies=cookies, headers=headers)
     prep = r.prepare()
     prep.url = url
@@ -93,7 +93,9 @@ def send_url_payloads(s, url, cookies, proxies, hide):
     except requests.exceptions.ConnectionError as e:
         print(e)
 
-    return resp.status_code, resp.text
+    parsed = urlparse(url)
+    path = parsed.path
+    return resp.status_code, resp.text, path
 
 
 def send_options(url, cookies, proxies):
@@ -161,7 +163,7 @@ for h, p in header_payloads.items():
 s = requests.Session()
 s.proxies = proxies
 for url in url_payloads:
-    resp_code, resp_text = send_url_payloads(s, url, cookies, proxies, hide)
+    resp_code, resp_text, path = send_url_payloads(s, url, cookies, proxies)
     MSG = "Response code: {}   Response length: {}   Path: {}\n".format(resp_code, len(resp_text), path)
 
     if hide["hc"] != str(resp_code) and hide["hl"] != str(len(resp_text)):
