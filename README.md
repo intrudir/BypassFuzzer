@@ -10,7 +10,8 @@ It will also apply different payloads typically used in dir traversals, path nor
 
 # Usage
 ```bash
-usage: 403fuzzer.py [-h] [-url URL] [-cookies COOKIES] [-proxy PROXY] [-hc HC] [-hl HL]
+usage: 403fuzzer.py [-h] [-url URL] [-cookies COOKIES] [-proxy PROXY] [-hc HC]
+                    [-hl HL]
 
 use this script to fuzz endpoints that return a 401/403
 
@@ -18,8 +19,8 @@ optional arguments:
   -h, --help            show this help message and exit
   -url URL, -u URL      Specify the target URL
   -cookies COOKIES, -c COOKIES
-                        Specify cookies to use in requests. eg. '-cookie "cookie1=blah;
-                        cookie2=blah"'
+                        Specify cookies to use in requests. eg. '-cookie
+                        "cookie1=blah; cookie2=blah"'
   -proxy PROXY, -p PROXY
                         Specify a proxy to use for requests
   -hc HC                Hide a specified response code from output
