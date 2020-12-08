@@ -10,18 +10,16 @@ It will also apply different payloads typically used in dir traversals, path nor
 
 # Usage
 ```bash
-usage: 403fuzzer.py [-h] [-url URL] [-cookies COOKIES] [-proxy PROXY] [-hc HC]
-                    [-hl HL]
+usage: 403fuzzer.py [-h] [-u URL] [-c COOKIES] [-p PROXY] [-hc HC] [-hl HL]
 
 use this script to fuzz endpoints that return a 401/403
 
 optional arguments:
   -h, --help            show this help message and exit
-  -url URL, -u URL      Specify the target URL
-  -cookies COOKIES, -c COOKIES
-                        Specify cookies to use in requests. eg. '-cookie
-                        "cookie1=blah; cookie2=blah"'
-  -proxy PROXY, -p PROXY
+  -u URL, --url URL     Specify the target URL
+  -c COOKIES, --cookies COOKIES
+                        Specify cookies to use in requests. eg. '-cookie "cookie1=blah; cookie2=blah"'
+  -p PROXY, -proxy PROXY
                         Specify a proxy to use for requests
   -hc HC                Hide a specified response code from output
   -hl HL                Hide a specified response length from output
@@ -30,7 +28,7 @@ optional arguments:
 
 ## Basic examples
 ```bash
-python3 403fuzzer.py -url http://example.com/test1/test2/test3/forbidden.html
+python3 403fuzzer.py -u http://example.com/test1/test2/test3/forbidden.html
 ```
 ![image](https://user-images.githubusercontent.com/24526564/90268769-7ec1ae80-de25-11ea-859f-6d49593a0608.png)
 <br>
@@ -38,8 +36,8 @@ python3 403fuzzer.py -url http://example.com/test1/test2/test3/forbidden.html
 ### Specify cookies to use in requests:
 Examples:
 ```bash
--cookies "cookie1=blah"
--cookies "cookie1=blah; cookie2=blah"
+--cookies "cookie1=blah"
+-c "cookie1=blah; cookie2=blah"
 ```
 <br>
 
@@ -51,8 +49,9 @@ Useful if you wanna proxy through Burp
 <br>
 
 ### Hide responses
+Provide comma delimited lists without spaces.
 Examples:
 ```bash
--hc 404  # Hide 404 response codes
+-hc 403,404,400  # Hide response codes
 -hl 638  # Hide response lengths of 638
 ```
