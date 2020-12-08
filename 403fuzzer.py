@@ -1,4 +1,5 @@
 from urllib.parse import urlparse, urlunparse
+from http.cookies import SimpleCookie
 import urllib, sys, os, argparse, requests
 requests.packages.urllib3.disable_warnings()
 
@@ -6,14 +7,14 @@ parser = argparse.ArgumentParser(
     description="use this script to fuzz endpoints that return a 401/403"
 )
 parser.add_argument(
-    '-url', '-u', action="store", default=None, dest='url',
+    '-u', '--url', action="store", default=None, dest='url',
     help="Specify the target URL")
 parser.add_argument(
-    '-cookies', '-c', action="store", default=None, dest='cookies',
+     '-c', '--cookies', action="store", default=None, dest='cookies',
     help="Specify cookies to use in requests. \
          eg. '-cookie \"cookie1=blah; cookie2=blah\"'")
 parser.add_argument(
-    '-proxy', '-p', action="store", default=None, dest='proxy',
+    '-p', '-proxy', action="store", default=None, dest='proxy',
     help="Specify a proxy to use for requests")
 parser.add_argument(
     '-hc', action="store", default=None, dest='hc',
@@ -59,13 +60,6 @@ def setup_payloads(parsed, pathPieces, payloads):
             paths.append('/'.join(pathPieces))
             pathPieces[i] = piece
 
-            # prefix on first param, suffix on last param
-            pathPieces[len(pathPieces)-1] = "{}{}".format(piece, payload)
-            pathPieces[i] = "{}{}".format(payload, piece)
-            paths.append('/'.join(pathPieces))
-            pathPieces[i] = piece
-            pathPieces[len(pathPieces)-1] = last
-
     # sort and dedupe
     paths = sorted(set(paths))
 
@@ -85,17 +79,26 @@ def send_header_payloads(url, headers, cookies, proxies, h, p):
 
 
 def send_url_payloads(s, url, cookies, proxies):
+    s = requests.Session()
     r = requests.Request("GET", url, cookies=cookies, headers=headers)
-    prep = r.prepare()
+    #prep = r.prepare()
+    prep = s.prepare_request(r)
     prep.url = url
-    try:
-        resp = s.send(prep, verify=False)
-    except requests.exceptions.ConnectionError as e:
-        print(e)
 
-    parsed = urlparse(url)
-    path = parsed.path
-    return resp.status_code, resp.text, path
+    retry = 0
+    while retry <= 3:
+        try:
+            resp = s.send(prep, verify=False)
+        except requests.exceptions.ConnectionError as e:
+            print(e)
+            retry += 1
+        else:
+            break
+    else:
+        print("Retried 3 times. Exiting.")
+        sys.exit(1)
+
+    return resp.status_code, resp.text
 
 
 def send_options(url, cookies, proxies):
@@ -125,20 +128,19 @@ else:
 
 # If cookies, parse them
 if args.cookies:
-    cookies = dict(x.strip(' ').split('=') for x in args.cookies.split(';'))
+    cookie = SimpleCookie()
+    cookie.load(args.cookies)
+    cookies = {key: value.value for key, value in cookie.items()}
 else:
     cookies = {}
 
-hide = {}
+hide = {"codes": [], "lengths": []}
 if args.hc:
-    hide["hc"] = args.hc
-else:
-    hide["hc"] = ''
-
+    for i in args.hc.split(','):
+        hide["codes"].append(i)
 if args.hl:
-    hide["hl"] = args.hl
-else:
-    hide["hl"] = ''
+    for i in args.hl.split(','):
+        hide["lengths"].append(i)
 
 # https://example.com/test/test2?p1=1&p2=2
 url = args.url
@@ -159,17 +161,17 @@ header_payloads = {
 for h, p in header_payloads.items():
     resp_code, resp_text = send_header_payloads(url, headers, cookies, proxies, h, p)
     MSG = "Response code: {}   Response length: {}   Header: {}: {}\n".format(resp_code, len(resp_text), h, p)
-
-    if hide["hc"] != str(resp_code) and hide["hl"] != str(len(resp_text)):
+    if str(resp_code) not in hide["codes"] and str(len(resp_text)) not in hide["lengths"]:
         print(MSG)
 
 s = requests.Session()
 s.proxies = proxies
 for url in url_payloads:
-    resp_code, resp_text, path = send_url_payloads(s, url, cookies, proxies)
+    parsed = urlparse(url)
+    path = parsed.path
+    resp_code, resp_text = send_url_payloads(s, url, cookies, proxies)
     MSG = "Response code: {}\tResponse length: {}\tPath: {}".format(resp_code, len(resp_text), path)
-
-    if hide["hc"] != str(resp_code) and hide["hl"] != str(len(resp_text)):
+    if str(resp_code) not in hide["codes"] and str(len(resp_text)) not in hide["lengths"]:
         print(MSG)
 
 send_options(url, cookies, proxies)
