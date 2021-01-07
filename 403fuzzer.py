@@ -15,10 +15,11 @@ parser.add_argument(
 parser.add_argument(
      '-c', '--cookies', action="store", default=None, dest='cookies',
     help="Specify cookies to use in requests. \
-         eg. '-cookie \"cookie1=blah; cookie2=blah\"'")
+         (e.g., --cookies \"cookie1=blah; cookie2=blah\")")
 parser.add_argument(
     '-p', '--proxy', action="store", default=None, dest='proxy',
-    help="Specify a proxy to use for requests (e.g., http://localhost:8080)")
+    help="Specify a proxy to use for requests \
+            (e.g., http://localhost:8080)")
 parser.add_argument(
     '-hc', action="store", default=None, dest='hc',
     help="Hide response code from output, single or comma separated")
