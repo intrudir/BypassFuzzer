@@ -1,6 +1,9 @@
+#!/usr/bin/env python3
+
 from urllib.parse import urlparse, urlunparse
 from http.cookies import SimpleCookie
 import urllib, sys, os, argparse, requests
+
 requests.packages.urllib3.disable_warnings()
 
 parser = argparse.ArgumentParser(
