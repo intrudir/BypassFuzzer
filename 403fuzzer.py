@@ -1,6 +1,9 @@
+#!/usr/bin/env python3
+
 from urllib.parse import urlparse, urlunparse
 from http.cookies import SimpleCookie
 import urllib, sys, os, argparse, requests
+
 requests.packages.urllib3.disable_warnings()
 
 parser = argparse.ArgumentParser(
@@ -12,16 +15,17 @@ parser.add_argument(
 parser.add_argument(
      '-c', '--cookies', action="store", default=None, dest='cookies',
     help="Specify cookies to use in requests. \
-         eg. '-cookie \"cookie1=blah; cookie2=blah\"'")
+         (e.g., --cookies \"cookie1=blah; cookie2=blah\")")
 parser.add_argument(
-    '-p', '-proxy', action="store", default=None, dest='proxy',
-    help="Specify a proxy to use for requests")
+    '-p', '--proxy', action="store", default=None, dest='proxy',
+    help="Specify a proxy to use for requests \
+            (e.g., http://localhost:8080)")
 parser.add_argument(
     '-hc', action="store", default=None, dest='hc',
-    help="Hide a specified response code from output")
+    help="Hide response code from output, single or comma separated")
 parser.add_argument(
     '-hl', action="store", default=None, dest='hl',
-    help="Hide a specified response length from output")
+    help="Hide response length from output, single or comma separated")
 args = parser.parse_args()
 
 if len(sys.argv) <= 1:
@@ -160,7 +164,7 @@ header_payloads = {
 
 for h, p in header_payloads.items():
     resp_code, resp_text = send_header_payloads(url, headers, cookies, proxies, h, p)
-    MSG = "Response code: {}   Response length: {}   Header: {}: {}\n".format(resp_code, len(resp_text), h, p)
+    MSG = "Response Code: {}\tLength: {}\tHeader: {}: {}".format(resp_code, len(resp_text), h, p)
     if str(resp_code) not in hide["codes"] and str(len(resp_text)) not in hide["lengths"]:
         print(MSG)
 
@@ -170,7 +174,7 @@ for url in url_payloads:
     parsed = urlparse(url)
     path = parsed.path
     resp_code, resp_text = send_url_payloads(s, url, cookies, proxies)
-    MSG = "Response code: {}\tResponse length: {}\tPath: {}".format(resp_code, len(resp_text), path)
+    MSG = "Response Code: {}\tLength: {}\tPath: {}".format(resp_code, len(resp_text), path)
     if str(resp_code) not in hide["codes"] and str(len(resp_text)) not in hide["lengths"]:
         print(MSG)
 

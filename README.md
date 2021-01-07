@@ -18,11 +18,11 @@ optional arguments:
   -h, --help            show this help message and exit
   -u URL, --url URL     Specify the target URL
   -c COOKIES, --cookies COOKIES
-                        Specify cookies to use in requests. eg. '-cookie "cookie1=blah; cookie2=blah"'
-  -p PROXY, -proxy PROXY
-                        Specify a proxy to use for requests
-  -hc HC                Hide a specified response code from output
-  -hl HL                Hide a specified response length from output
+                        Specify cookies to use in requests. (e.g., --cookies "cookie1=blah; cookie2=blah")
+  -p PROXY, --proxy PROXY
+                        Specify a proxy to use for requests (e.g., http://localhost:8080)
+  -hc HC                Hide response code from output, single or comma separated
+  -hl HL                Hide response length from output, single or comma separated
 ```
 <br>
 
@@ -44,7 +44,7 @@ Examples:
 ### Specify a proxy to use
 Useful if you wanna proxy through Burp
 ```bash
--proxy http://localhost:8080
+--proxy http://localhost:8080
 ```
 <br>
 
