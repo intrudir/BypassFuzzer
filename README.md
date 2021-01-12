@@ -58,5 +58,5 @@ Examples:
 <br>
 
 # TODO:
-Add other methods for bypass, POST requests
-Maybe add an output file option for `200 OOK`s
+- Add other methods for bypass, POST requests
+- Maybe add an output file option for `200 OK`s
