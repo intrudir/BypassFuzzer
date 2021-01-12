@@ -55,3 +55,7 @@ Examples:
 -hc 403,404,400  # Hide response codes
 -hl 638  # Hide response lengths of 638
 ```
+
+TODO:
+Add other methods for bypass, POST requests
+Maybe add an output file option for `200 OOK`s
