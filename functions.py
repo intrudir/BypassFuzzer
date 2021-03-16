@@ -76,15 +76,16 @@ def send_header_payloads(url, cookies, proxies, payload):
     return resp.status_code, resp.text, payload
 
 
-def send_url_payloads(s, url, cookies):
-    r = requests.Request("GET", url, cookies=cookies, headers=headers)
-    prep = s.prepare_request(r)
+def send_url_payloads(s, url, method, data, cookies):
+    req = requests.Request(url=url, method=method, data=data, cookies=cookies, headers=headers)
+    prep = s.prepare_request(req)
     prep.url = url
 
     retry = 0
     while retry <= 3:
         try:
-            resp = s.send(prep, verify=False)
+            # has fragmemnts in url at this point
+            response = s.send(prep, verify=False)
         except requests.exceptions.ConnectionError as e:
             print(e)
             retry += 1
@@ -96,7 +97,7 @@ def send_url_payloads(s, url, cookies):
 
     # Uncomment to see what the full URL looked like when sent
     #print('Sent: {}'.format(resp.url))
-    return resp.status_code, resp.text
+    return req, response
 
 
 def send_options(url, cookies, proxies):
@@ -109,3 +110,28 @@ def send_options(url, cookies, proxies):
     print("Response Headers: ")
     for h, v in resp.request.headers.items():
         print("{}: {}".format(h, v))
+
+
+def pretty_print_request(req):
+    stuff = (
+"""
+-----------START-----------
+Method: {}
+Url: {}
+
+Headers:
+""").format(req.method, req.url)
+    for k, v in req.headers.items():
+        stuff += "{}: {}\n".format(k, v)
+    stuff += '\n'
+
+    if req.data:
+        stuff += "body data: " + str(req.data)
+    if req.json:
+        stuff += "json: " + str(req.json)
+    if req.params:
+        stuff += "params: " + str(req.params)
+
+    stuff += "\n-----------END-----------\n\n"
+
+    return stuff
