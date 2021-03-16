@@ -41,6 +41,13 @@ Examples:
 ```
 <br>
 
+### Specify a method/verb and body data to send
+```bash
+-m POST -d "param1=blah&param2=blah2"
+-m PUT -d "param1=blah&param2=blah2"
+```
+<br>
+
 ### Specify a proxy to use
 Useful if you wanna proxy through Burp
 ```bash
@@ -48,7 +55,14 @@ Useful if you wanna proxy through Burp
 ```
 <br>
 
-### Hide responses
+### Skip sending header payloads or url payloads
+```bash
+-sh  # skip sending headers payloads
+-su  # Skip sending path normailization payloads
+```
+<br>
+
+### Hide response code/length
 Provide comma delimited lists without spaces.
 Examples:
 ```bash
@@ -58,5 +72,6 @@ Examples:
 <br>
 
 # TODO:
-- Add other methods for bypass, POST requests
-- Maybe add an output file option for `200 OK`s
+- [x] Add other methods/verbs for bypass, e.g. POST requests
+- [x] Maybe add an output file option for `200 OK`s
+- [ ] Looking for ideas. Ping me on twitter! @intrudir
