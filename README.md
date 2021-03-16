@@ -34,6 +34,7 @@ python3 403fuzzer.py -u http://example.com/test1/test2/test3/forbidden.html
 <br>
 
 ### Specify cookies to use in requests:
+(minus the cookie header name)
 Examples:
 ```bash
 --cookies "cookie1=blah"
@@ -68,6 +69,14 @@ Examples:
 ```bash
 -hc 403,404,400  # Hide response codes
 -hl 638  # Hide response lengths of 638
+```
+<br>
+
+### Save requests for matching response code
+Will save to a file named saved.txt
+Useful for later inspection
+```
+--save 200  # save requests where the response code matched 200
 ```
 <br>
 
