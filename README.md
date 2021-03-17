@@ -28,7 +28,7 @@ optional arguments:
                         "cookie1=blah; cookie2=blah")
   -p PROXY, --proxy PROXY
                         Specify a proxy to use for requests (e.g.,
-                        http://localhost:8080)
+                        http://127.0.0.1:8080)
   -hc HC                Hide response code from output, single or comma
                         separated
   -hl HL                Hide response length from output, single or comma
@@ -67,7 +67,7 @@ Examples:
 ### Specify a proxy to use
 Useful if you wanna proxy through Burp
 ```bash
---proxy http://localhost:8080
+--proxy http://127.0.0.1:8080
 ```
 <br>
 
