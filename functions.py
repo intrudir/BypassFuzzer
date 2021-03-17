@@ -1,4 +1,4 @@
-import urllib, requests
+import urllib, requests, sys
 from urllib.parse import urlparse, urlunparse
 
 headers = {
@@ -9,6 +9,32 @@ headers = {
     "DNT": "1",
     "Connection": "close",
     "Upgrade-Insecure-Requests": "1"}
+
+class SmartFilter():
+    """ All credit for this filter goes to whoever did this:
+    https://gist.github.com/defparam/8067cc4eb0140399f2bcd5f66a860db4
+    """
+    def __init__(self, repeats=10):
+        # our data base to keep track of history
+        self._db = {}
+        # the number of repeats allowed before muting future responses
+        self._repeats = repeats
+
+    def check(self, status, wordlen):
+        # We make a directory key by concating status code + number of words
+        key = str(status)+str(wordlen)
+        # if never seen this key before, add it to the dictionary with 1 hit
+        if key not in self._db:
+            self._db[key] = 1
+        # if key exists and it reached the repeat maximum, mute the response
+        elif (self._db[key] >= self._repeats):
+            return False
+        # If the key hasn't reached the repeat limit,
+        # add to the hit count and allow the response to be shown
+        else:
+            self._db[key] += 1
+
+        return True
 
 
 def setup_payloads(url, url_payloads_file, header_payloads_file):
@@ -70,14 +96,17 @@ def setup_payloads(url, url_payloads_file, header_payloads_file):
 def send_header_payloads(url, cookies, proxies, payload):
     hdr = payload.split(" ")[0].strip(":")
     headers[hdr] = payload.split(" ")[1]
-    resp = requests.get(url, cookies=cookies, proxies=proxies, headers=headers, verify=False)
+    resp = requests.get(
+        url, cookies=cookies, proxies=proxies,
+        headers=headers, verify=False)
     headers.pop(hdr)
 
     return resp.status_code, resp.text, payload
 
 
 def send_url_payloads(s, url, method, data, cookies):
-    req = requests.Request(url=url, method=method, data=data, cookies=cookies, headers=headers)
+    req = requests.Request(
+        url=url, method=method, data=data, cookies=cookies, headers=headers)
     prep = s.prepare_request(req)
     prep.url = url
 
@@ -96,13 +125,15 @@ def send_url_payloads(s, url, method, data, cookies):
         sys.exit(1)
 
     # Uncomment to see what the full URL looked like when sent
-    #print('Sent: {}'.format(resp.url))
+    # print('Sent: {}'.format(resp.url))
     return req, response
 
 
 def send_options(url, cookies, proxies):
-    resp = requests.options(url, cookies=cookies, proxies=proxies, headers=headers, verify=False)
-    print("Response code: {}   Response length: {}   Sent OPTIONS method. \n".format(resp.status_code, len(resp.text)))
+    resp = requests.options(
+        url, cookies=cookies, proxies=proxies, headers=headers, verify=False)
+    print("Response code: {}   Response length: {}   \
+        Sent OPTIONS method. \n".format(resp.status_code, len(resp.text)))
 
     if len(resp.text) < 1:
         print("Response length was 0 so probably NOT worth checking out....\n")
