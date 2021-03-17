@@ -27,13 +27,16 @@ parser.add_argument(
 parser.add_argument(
     '-p', '--proxy', action="store", default=None, dest='proxy',
     help="Specify a proxy to use for requests \
-            (e.g., http://localhost:8080)")
+        (e.g., http://localhost:8080)")
 parser.add_argument(
     '-hc', action="store", default=None, dest='hc',
     help="Hide response code from output, single or comma separated")
 parser.add_argument(
     '-hl', action="store", default=None, dest='hl',
     help="Hide response length from output, single or comma separated")
+parser.add_argument(
+    '-sf', '--smart', action="store_true", default=False, dest='smart_filter',
+    help="Enable the smart filter")
 parser.add_argument(
     '--save', action="store", default=None, dest='save',
     help="Saves stuff to a file when you get your specified response code")
@@ -50,6 +53,10 @@ if len(sys.argv) <= 1:
     parser.print_help()
     print()
     sys.exit()
+
+if args.smart_filter and (args.hc or args.hl):
+    print("Can't do smart filter together with hide code or hide length yet")
+    sys.exit(1)
 
 # if proxy, set it for requests
 if args.proxy:
@@ -88,6 +95,10 @@ if args.data_params:
 else:
     data = {}
 
+# Init smart SmartFilter
+if args.smart_filter:
+    FILTER = SmartFilter(repeats=8)  # Only allow repeats of 3 common responses
+
 scriptDir = os.path.dirname(__file__)
 url_payloads_file = os.path.join(scriptDir, 'url_payloads.txt')
 hdr_payloads_file = os.path.join(scriptDir, 'header_payloads.txt')
@@ -115,9 +126,14 @@ if not args.skip_urls:
         else:
             resp_path = resp_parsed.path
         MSG = "Response Code: {}\tLength: {}\tPath: {}".format(response.status_code, len(response.text), resp_path)
-        if str(response.status_code) not in hide["codes"] and str(len(response.text)) not in hide["lengths"]:
-            print(MSG)
+        if args.smart_filter:
+            if FILTER.check(response.status_code, str(len(response.text))):
+                print(MSG)
+        else:
+            if str(response.status_code) not in hide["codes"] and str(len(response.text)) not in hide["lengths"]:
+                print(MSG)
 
+        # save request info to saved.txt if matches specified code
         if str(response.status_code) == args.save:
             stuff = pretty_print_request(req)
             with open("saved.txt", 'a+') as of:
