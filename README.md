@@ -72,6 +72,15 @@ Examples:
 ```
 <br>
 
+### Smart filter feature!
+Based on response code and length. If it sees a response 8 times or more it will automatically mute it.
+repeats are changeable in the code until I add an option to specify it in flag
+NOTE: Can't be used simultaneously with `-hc` or `-hl` (yet)
+```bash
+--smart  # toggle smart filter on
+```
+<br>
+
 ### Save requests for matching response code
 Will save to a file named saved.txt
 Useful for later inspection
