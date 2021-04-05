@@ -24,7 +24,7 @@ parser.add_argument(
      help="Specify cookies to use in requests. \
          (e.g., --cookies \"cookie1=blah; cookie2=blah\")")
 parser.add_argument(
-     '-H', '--header', action="append", default=None, dest='headers',
+     '-H', '--header', action="append", default=None, dest='header',
      help="Add headers to your request\
          (e.g., --header \"Accept: application/json\" --header \"Host: example.com\"")
 parser.add_argument(
@@ -96,8 +96,8 @@ headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0",
     }
 
-if args.headers:
-    add_headers = {x.split(":")[0]: x.split(":")[1].strip() for x in args.headers}
+if args.header:
+    add_headers = {x.split(":")[0]: x.split(":")[1].strip() for x in args.header}
     headers.update(add_headers)
 
 # parse body data
