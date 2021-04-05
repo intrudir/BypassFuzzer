@@ -1,14 +1,6 @@
 import urllib, requests, sys
 from urllib.parse import urlparse, urlunparse
 
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-    "Accept-Language": "en-US,en;q=0.5",
-    "Accept-Encoding": "gzip, deflate",
-    "DNT": "1",
-    "Connection": "close",
-    "Upgrade-Insecure-Requests": "1"}
 
 class SmartFilter():
     """ All credit for this filter goes to whoever did this:
@@ -40,17 +32,17 @@ class SmartFilter():
 def setup_payloads(url, url_payloads_file, header_payloads_file):
     # ParseResult(scheme='https', netloc='example.com', path='/test/test2',
     # params='', query='p1=1&p2=2', fragment='')
-    parsed = urlparse(url)
+    parsed = urlparse(url) 
     path = parsed.path  # /test/test2
     query = parsed.query  # p1=1p2=2
     pathPieces = ' '.join(parsed.path.split('/')).split()  # ['test', 'test2']
 
+    url_payloads = []
     # Set up URL payloads
     with open(url_payloads_file, 'r') as pf:
         payloads = pf.read().splitlines()
 
     paths = []
-    url_payloads = []
     for i, piece in enumerate(pathPieces):
         pathPieces[len(pathPieces)-1]
         for payload in payloads:
@@ -70,7 +62,7 @@ def setup_payloads(url, url_payloads_file, header_payloads_file):
     for p in paths:
         parsed = parsed._replace(path=p)
         url_payloads.append(urlunparse(parsed))
-
+ 
     # Set up header payloads
     with open(header_payloads_file, 'r') as pf:
         payloads = pf.read().splitlines()
@@ -93,18 +85,18 @@ def setup_payloads(url, url_payloads_file, header_payloads_file):
     return url_payloads, header_payloads
 
 
-def send_header_payloads(url, cookies, proxies, payload):
+def send_header_payloads(url, headers, cookies, proxies, payload):
     hdr = payload.split(" ")[0].strip(":")
     headers[hdr] = payload.split(" ")[1]
-    resp = requests.get(
+    response = requests.get(
         url, cookies=cookies, proxies=proxies,
         headers=headers, verify=False)
     headers.pop(hdr)
 
-    return resp.status_code, resp.text, payload
+    return response, payload
 
 
-def send_url_payloads(s, url, method, data, cookies):
+def send_url_payloads(s, url, method, headers, data, cookies):
     req = requests.Request(
         url=url, method=method, data=data, cookies=cookies, headers=headers)
     prep = s.prepare_request(req)
@@ -129,7 +121,7 @@ def send_url_payloads(s, url, method, data, cookies):
     return req, response
 
 
-def send_options(url, cookies, proxies):
+def send_options(url, headers, cookies, proxies):
     resp = requests.options(
         url, cookies=cookies, proxies=proxies, headers=headers, verify=False)
     print("Response code: {}   Response length: {}   \
