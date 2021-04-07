@@ -19,7 +19,7 @@ class SmartFilter():
         if key not in self._db:
             self._db[key] = 1
         # if key exists and it reached the repeat maximum, mute the response
-        elif (self._db[key] >= self._repeats):
+        elif self._db[key] >= self._repeats:
             return False
         # If the key hasn't reached the repeat limit,
         # add to the hit count and allow the response to be shown
@@ -34,8 +34,7 @@ def setup_payloads(url, url_payloads_file, header_payloads_file):
     # params='', query='p1=1&p2=2', fragment='')
     parsed = urlparse(url) 
     path = parsed.path  # /test/test2
-    query = parsed.query  # p1=1p2=2
-    pathPieces = ' '.join(parsed.path.split('/')).split()  # ['test', 'test2']
+    path_pieces = ' '.join(parsed.path.split('/')).split()  # ['test', 'test2']
 
     url_payloads = []
     # Set up URL payloads
@@ -43,18 +42,18 @@ def setup_payloads(url, url_payloads_file, header_payloads_file):
         payloads = pf.read().splitlines()
 
     paths = []
-    for i, piece in enumerate(pathPieces):
-        pathPieces[len(pathPieces)-1]
+    for i, piece in enumerate(path_pieces):
+        path_pieces[len(path_pieces)-1]
         for payload in payloads:
             # prefix payload
-            pathPieces[i] = "{}{}".format(payload, piece)
-            paths.append('/'.join(pathPieces))
-            pathPieces[i] = piece
+            path_pieces[i] = "{}{}".format(payload, piece)
+            paths.append('/'.join(path_pieces))
+            path_pieces[i] = piece
 
             # suffix payload
-            pathPieces[i] = "{}{}".format(piece, payload)
-            paths.append('/'.join(pathPieces))
-            pathPieces[i] = piece
+            path_pieces[i] = "{}{}".format(piece, payload)
+            paths.append('/'.join(path_pieces))
+            path_pieces[i] = piece
 
     # sort and dedupe
     paths = sorted(set(paths))
@@ -158,3 +157,24 @@ Headers:
     stuff += "\n-----------END-----------\n\n"
 
     return stuff
+
+
+def do_results(FILTER, response, payload, colors, args, hide):
+
+    msg = "Response Code: {}\tLength: {}\tPayload: {}".format(
+            response.status_code, len(response.text), payload)
+    
+    if response.status_code > 400:
+        msg = colors["red"] + msg
+    elif response.status_code >= 300 and response.status_code < 400:
+        msg = colors["white"] + msg
+    elif response.status_code < 300 and response.status_code >= 200:
+        msg = colors["green"] + msg
+
+    if args.smart_filter:
+        if FILTER.check(response.status_code, str(len(response.text))):
+            print(msg)
+    else:
+        if str(response.status_code) not in hide["codes"] and str(len(response.text)) not in hide["lengths"]:
+            print(msg)
+

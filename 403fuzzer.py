@@ -2,7 +2,73 @@
 
 from http.cookies import SimpleCookie
 import sys, os, argparse, requests
-from functions import *
+from urllib.parse import urlparse, urlunparse
+import colorama
+import functions as func
+
+BANNER = """
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@/***/(@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@&,  ,&@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@(@@@@*@@@@@@@@@@@@@(,*&@@@@@@@@@@@@,@@@&(@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@.%@@@*@@@@@##@@@&@*/(*(@@@@@%(@@@@@,&@@%*&@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@& *@@@,&@@@@,/@@&*(*((%#%%%@@(#&@@@&/%@@/*%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*  #&(*(@@&# ,% ,,*(/(%%/,// ,,*@@@/((&( *(%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@&  .#&/..,&%   ,##(,.*@%,%//#%&( .&(*.#/@*./@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@&,.@@#,,/   . .  . ..#.((**#&#, . .,,#@@/,&@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*./@* .           ../,  ..*.((,*  .,*/#,*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ , *. ,        .,, *(*/...//.,,///&%#//#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*    . ./,*, .. /,..,**#/*&,&&##(/#@%&(&@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@&  #( %(...,*,**,.((/((%#//((##(,/%/,/(@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@&      ......, .. .** .*/,,.,*, ,,/(#(%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@(      . /.,.,.,*,/*/*/*/,///,///.  ..#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@,       ..#%&#,  *,.%,(%&&@@&@@&@%  .//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@.    .(,       ... .,*(&*       .%#. ,(&@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@#*    ,/*..       , ,&///.         (...#%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@(, .. .# .*     .. ,/*./&#,,.     .@(/,(%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@,/ *   ,#%%%%%#*(.( *.(&&@@&%#* .(&&&,*%/@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@,. *  .,#&&&&,((%#../(/,@@@@@#&&&&&@%,%&&@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@., %   ((/(/#*#(&*(.&%. %@&@@@@@@@@@(*&&#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@&/     .#       ,/(#(#&%#&&%&@@@@&%@&,.. .#%# *&&@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@(.    .     /         .,, /.*,*//*##&&( #/,  ,%*# .*,,/@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@&/ .           *.            (/**/#(#(%%#%(% ,  (%(# */,,,,*%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@#   ,   ..     ..           , *#*&/(&%/(*#%(,, (%#/% ./(//** (@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@&.  ,#/(      .   /,       ,  (#/&(#%(#&@&&(&(%#*/#/#&( .(#,(%(*.#@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@(   **., ,.    ..../      ..,..*&%/*&#&&#(##&&((/#(/%&/./%%/*,//***..(@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@#/*.., ,.,,, ,  .,*  ..       , .  .,.,/,,%%#@&@%(% ,%.%%(.,,*/#,(#/.,,(%&@&&#*/&@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@(/,,,.   ,/  ,*,     /(  */           ,.,#(*/*%&(&%&%&  *(*/(*..,(#%*./%#*/((%%%#/#%&&(/@(@&@@@@@@@@@
+@@@@@@@@@@@@@@@&,*,,.     , ,,..*.* .   ,(* */,           / *(*,,%#(&##%#(.../##(. * & ,(  ,///(&%%%&##%@##(##&@@@@@@@@@
+@@@@@@@@@@@@@@@.,    .. . ..* ,  ,,(/#. . #, .*        .  .(,(#*,#*&/%/&#%(*. ((%.  . (/.*. (//(%/#&&(%#%##%/#/%*#@@@@@@
+@@@@@@@@@@@@@((*....,..,..  **, ../((.    *(, ,.         ,*./*#,##(*(#/(%/ ,, /#&,.,. *.,.,*#(*.%@@@@&%%//####((%%%%&@@@
+@@@@@@@@@@&,#*/. / ,..,.,./*(,,. ..*.,, **  ./*.          ,*(*(,,/.*(,.&/, .,,(#* /,    ..,*#, ...(##%@(//%#(((#/.*%&@@@
+@@@@@/&(*,,*./,.(,/ .(*/***(#(#*, *,.  . ,/. ,.          ..,*/*.(* (/,*,/, .,.,...     %,,*,#., . .,*.%%///*#,/, %&%&@@@
+@@@@@(%   ,  /%,/( /,.,/***/#%%,/ ./ .   ,,.(*            ,/,/((//%  ./             .  %/##*%,(*.(/%*##*/. /#. .%*/%&@@@
+@@@@@,% **, * #%/./.,*,,/**//., /*#%.%  .& #,*,  .,       ***#@@%,#/ ..,,      ,(  (*  &/*##(//, &(, ../   *  .@ /#(&@@@
+@@@@@/%,//,, *.,(,. ...,,*  . .**/#,(.  /*/*,(%           ..,...../ , ./.*. ,#*#. ,/(   &/(*(*,   *%%&%%%*  ,%( ,//%%@@@
+@@@@@/%.*/**.*./ .,.*///,*(/,./** (/     ./%,/,  ,(//(/,*/*..,,*,,/,/**///(((,..  //%  . #( , .%#,#(/***(#%(# .  .*&&@@@
+@@@@@/%.,   ..    #,*,,.***((.&./,.    ,*    (. ,/,%%# /..#*#&@@/&&(/#*,(#(*,/*,  ,##...   ..*(*%/*/.%%&%##%(%    .@&@@@
+@@@@@*% /*.(/(   .. .,.,*#%/(%*/,.       ...  .     .*##&&%##(/#/#,//(  ../*.*,   ,,%.,*..   #.(/, .(#@@@%&#((#*( .@&@@@
+                        ██╗  ██╗ ██████╗ ██████╗ ███████╗██╗   ██╗███████╗███████╗███████╗██████╗ 
+                        ██║  ██║██╔═████╗╚════██╗██╔════╝██║   ██║╚══███╔╝╚══███╔╝██╔════╝██╔══██╗
+                        ███████║██║██╔██║ █████╔╝█████╗  ██║   ██║  ███╔╝   ███╔╝ █████╗  ██████╔╝
+                        ╚════██║████╔╝██║ ╚═══██╗██╔══╝  ██║   ██║ ███╔╝   ███╔╝  ██╔══╝  ██╔══██╗
+                             ██║╚██████╔╝██████╔╝██║     ╚██████╔╝███████╗███████╗███████╗██║  ██║
+                             ╚═╝ ╚═════╝ ╚═════╝ ╚═╝      ╚═════╝ ╚══════╝╚══════╝╚══════╝╚═╝  ╚═╝
+                                                                                        
+
+"""
+
+print(BANNER)
+
+# Colors
+colorama.init(autoreset=True)
+colors = {
+    "red": colorama.Fore.RED,
+    "green": colorama.Fore.GREEN,
+    "blue": colorama.Fore.BLUE,
+    "yellow": colorama.Fore.YELLOW,
+    "bright": colorama.Style.BRIGHT,
+    "reset": colorama.Style.RESET_ALL
+}
 
 requests.packages.urllib3.disable_warnings()
 
@@ -64,7 +130,7 @@ if args.smart_filter and (args.hc or args.hl):
 # if proxy, set it for requests
 if args.proxy:
     try:
-        proxies = {"http": "http://" + args.proxy.split('//')[1],
+        PROXIES = {"http": "http://" + args.proxy.split('//')[1],
                    "https": "http://" + args.proxy.split('//')[1]
                    }
     except (IndexError, ValueError):
@@ -73,7 +139,7 @@ Needs to be something like http://127.0.0.1:8080")
         sys.exit(1)
 
 else:
-    proxies = None
+    PROXIES = {}
 
 # If cookies, parse them
 if args.cookies:
@@ -83,7 +149,7 @@ if args.cookies:
 else:
     cookies = {}
 
-hide = {"codes": [], "lengths": []}
+hide: dict = {"codes": [], "lengths": []}
 if args.hc:
     for i in args.hc.split(','):
         hide["codes"].append(i)
@@ -109,7 +175,7 @@ else:
 
 # Init smart SmartFilter
 if args.smart_filter:
-    FILTER = SmartFilter(repeats=8)  # Only allow repeats of 3 common responses
+    FILTER = func.SmartFilter(repeats=8)  # Only allow repeats of 3 common responses
 
 scriptDir = os.path.dirname(__file__)
 url_payloads_file = os.path.join(scriptDir, 'url_payloads.txt')
@@ -117,75 +183,62 @@ hdr_payloads_file = os.path.join(scriptDir, 'header_payloads.txt')
 
 # https://example.com/test/test2?p1=1&p2=2
 url = args.url
-url_payloads, header_payloads = setup_payloads(url, url_payloads_file, hdr_payloads_file)
+url_payloads, header_payloads = func.setup_payloads(url, url_payloads_file, hdr_payloads_file)
 
 s = requests.Session()
-s.proxies = proxies
+s.proxies = PROXIES
 
-if not args.skip_headers:
-    print("Sending header payloads...")
-    for payload in header_payloads:
-        response, payload = send_header_payloads(url, headers, cookies, proxies, payload)
-        MSG = "Response Code: {}\tLength: {}\tHeader: {}".format(response.status_code, len(response.text), payload) 
-        if args.smart_filter:
-            if FILTER.check(response.status_code, str(len(response.text))):
-                print(MSG)
+if __name__ == "__main__":
+    if not args.skip_headers:
+        print("Sending header payloads...")
+        for payload in header_payloads:
+            response, payload = func.send_header_payloads(url, headers, cookies, PROXIES, payload)
+
+            msg = func.do_results(FILTER, response, payload, colors, args, hide)
+
+    if not args.skip_urls:
+        # First, try sending with absolute domain (trailing dot)
+        # If proxy flag is set, skip this payload
+        # Burp has issues processing domains with the trailing dot this and
+        # will freak out about illegal SSL
+        if not args.proxy:
+            parsed = urlparse(url)
+            og_domain = parsed.netloc
+            absolute_domain = parsed.netloc + '.'
+            parsed = parsed._replace(netloc=absolute_domain)
+            url = urlunparse(parsed)
+            headers["Host"] = absolute_domain
+            req = requests.Request(
+                url=url, method=args.method, data=data, cookies=cookies, headers=headers)
+            prep = s.prepare_request(req)
+            prep.url = url
+
+            print("\nSending payload with absolute domain...")
+            response = s.send(prep, verify=False)
+
+            msg = func.do_results(FILTER, response, absolute_domain, colors, args, hide)
+
+            # Reset host header
+            headers.pop("Host")
         else:
-            if str(response.status_code) not in hide["codes"] and str(len(response.text)) not in hide["lengths"]:
-                print(MSG)
+            print("\nProxy flag was detected. Skipping trailing dot payload...")
 
-if not args.skip_urls:
-    # First, try sending with absolute domain (trailing dot)
-    # If proxy flag is set, skip this payload
-    # Burp has issues processing domains with the trailing dot this and will 
-    # freak out about illegal SSL 
-    if not args.proxy:
-        parsed = urlparse(url)
-        og_domain = parsed.netloc               
-        absolute_domain = parsed.netloc + '.' 
-        parsed = parsed._replace(netloc=absolute_domain)
-        url = urlunparse(parsed)
-        headers["Host"] = absolute_domain
-        req = requests.Request(
-            url=url, method=args.method, data=data, cookies=cookies, headers=headers)
-        prep = s.prepare_request(req)
-        prep.url = url
-        
-        print("\nSending payload with absolute domain...")
-        response = s.send(prep, verify=False)
-        MSG = "Response Code: {}\tLength: {}\tPayload: {}\n".format(response.status_code, len(response.text), response.url) 
-        if args.smart_filter:
-            if FILTER.check(response.status_code, str(len(response.text))):
-                print(MSG)
-        else:
-            if str(response.status_code) not in hide["codes"] and str(len(response.text)) not in hide["lengths"]:
-                print(MSG)
-        # Reset host header
-        headers.pop("Host")
-    else:
-        print("\nProxy flag was detected. Skipping trailing dot payload...")
+        # Start sending URL payloads
+        print("\nSending URL payloads...")
+        for url in url_payloads:
+            req, response = func.send_url_payloads(s, url, args.method, headers, data, cookies)
+            resp_parsed = urlparse(response.url)
+            if resp_parsed.fragment:
+                resp_path = resp_parsed.path + '#' + resp_parsed.fragment
+            else:
+                resp_path = resp_parsed.path
 
-    # Start sending URL payloads
-    print("\nSending URL payloads...")
-    for url in url_payloads:
-        req, response = send_url_payloads(s, url, args.method, headers, data, cookies)
-        resp_parsed = urlparse(response.url)
-        if resp_parsed.fragment:
-            resp_path = resp_parsed.path + '#' + resp_parsed.fragment
-        else:
-            resp_path = resp_parsed.path
-        MSG = "Response Code: {}\tLength: {}\tPath: {}".format(response.status_code, len(response.text), resp_path)
-        if args.smart_filter:
-            if FILTER.check(response.status_code, str(len(response.text))):
-                print(MSG)
-        else:
-            if str(response.status_code) not in hide["codes"] and str(len(response.text)) not in hide["lengths"]:
-                print(MSG)
+            msg = func.do_results(FILTER, response, resp_path, colors, args, hide)
 
-        # save request info to saved.txt if matches specified code
-        if str(response.status_code) == args.save:
-            stuff = pretty_print_request(req)
-            with open("saved.txt", 'a+') as of:
-                of.write(stuff)
+            # save request info to saved.txt if matches specified code
+            if str(response.status_code) == args.save:
+                stuff = func.pretty_print_request(req)
+                with open("saved.txt", 'a+') as of:
+                    of.write(stuff)
 
-send_options(url, headers, cookies, proxies)
+    func.send_options(url, headers, cookies, PROXIES)
