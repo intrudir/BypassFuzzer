@@ -206,7 +206,10 @@ if __name__ == "__main__":
         if not args.proxy:
             parsed = urlparse(url)
             og_domain = parsed.netloc
-            absolute_domain = parsed.netloc + '.'
+            if ':' in parsed.netloc:
+                absolute_domain = parsed.netloc.split(':')[0] + '.:' + parsed.netloc.split(':')[1]
+            else:
+                absolute_domain = parsed.netloc + '.'
             parsed = parsed._replace(netloc=absolute_domain)
             url = urlunparse(parsed)
             headers["Host"] = absolute_domain
