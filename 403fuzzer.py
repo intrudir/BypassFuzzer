@@ -176,6 +176,8 @@ else:
 # Init smart SmartFilter
 if args.smart_filter:
     FILTER = func.SmartFilter(repeats=8)  # Only allow repeats of 3 common responses
+else:
+    FILTER = None
 
 scriptDir = os.path.dirname(__file__)
 url_payloads_file = os.path.join(scriptDir, 'url_payloads.txt')
