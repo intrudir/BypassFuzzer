@@ -1,0 +1,79 @@
+Base-Url: {URL PAYLOAD}
+Base-Url: {IP PAYLOAD}
+CF-Connecting-IP: {IP PAYLOAD}
+CF-Connecting_IP: {IP PAYLOAD}
+Client-IP: {IP PAYLOAD}
+Destination: {IP PAYLOAD}
+From: {IP PAYLOAD}
+Http-Url: {IP PAYLOAD}
+Max-Forwards: 0
+Max-Forwards: 1
+Max-Forwards: 2
+Php-Auth-User: admin
+Proxy-Host: {IP PAYLOAD}
+Proxy-Url: {IP PAYLOAD}
+Proxy-Url: {URL PAYLOAD}
+Proxy: {IP PAYLOAD}
+Real-Ip: {IP PAYLOAD}
+Redirect: {IP PAYLOAD}
+Referer: {IP PAYLOAD}
+Referer: {URL PAYLOAD}
+Referrer: {IP PAYLOAD}
+Referrer: {URL PAYLOAD}
+Refferer: {IP PAYLOAD}
+Refferer: {URL PAYLOAD}
+Request-ID: 1234567890
+Request-Uri: {IP PAYLOAD}
+True-Client-IP: {IP PAYLOAD}
+Uri: {IP PAYLOAD}
+Uri: {URL PAYLOAD}
+Url: {IP PAYLOAD}
+Url: {URL PAYLOAD}
+X-Client-IP: {IP PAYLOAD}
+X-Custom-IP-Authorization..;/: {IP PAYLOAD}
+X-Custom-IP-Authorization: {IP PAYLOAD}
+X-Forward-For: {IP PAYLOAD}
+X-Forwarded-By: {IP PAYLOAD}
+X-Forwarded-For-Original: {IP PAYLOAD}
+X-Forwarded-For: {IP PAYLOAD}
+X-Forwarded-Host: {IP PAYLOAD}
+X-Forwarded-Port: 443
+X-Forwarded-Port: 4443
+X-Forwarded-Port: 80
+X-Forwarded-Port: 8080
+X-Forwarded-Port: 8443
+X-Forwarded-Proto: http
+X-Forwarded-Proto: https
+X-Forwarded-Scheme: http
+X-Forwarded-Scheme: https
+X-Forwarded-Server: {IP PAYLOAD}
+X-Forwarded: {IP PAYLOAD}
+X-Forwarder-For: {IP PAYLOAD}
+X-HTTP-DestinationURL: {URL PAYLOAD}
+X-Host: {IP PAYLOAD}
+X-Http-Destinationurl: {IP PAYLOAD}
+X-Http-Host-Override: {IP PAYLOAD}
+X-Original-Remote-Addr: {IP PAYLOAD}
+X-Original-URL: {IP PAYLOAD}
+X-Original-URL: {PATH PAYLOAD},
+X-Original-Url: {IP PAYLOAD}
+X-Originally-Forwarded-For: {IP PAYLOAD}
+X-Originating-IP: {IP PAYLOAD}
+X-Override-Url: {IP PAYLOAD}
+X-Override-Url: {URL PAYLOAD}
+X-Proxy-Url: {IP PAYLOAD}
+X-Proxy-Url: {URL PAYLOAD}
+X-ProxyUser-Ip: {IP PAYLOAD}
+X-Real-Ip: {IP PAYLOAD}
+X-Referrer: {IP PAYLOAD}
+X-Remote-Addr: {IP PAYLOAD}
+X-Remote-IP: {IP PAYLOAD}
+X-Request-ID: 1234567890
+X-Request-ID: 12345678901234567890
+X-Rewrite-URL: {IP PAYLOAD}
+X-Rewrite-Url: {IP PAYLOAD}
+X-Rewrite-Url: {PATH PAYLOAD}
+X-True-IP: {IP PAYLOAD}
+X-Url-Scheme: https
+X-Url-Scheme: http
+X-WAP-Profile: {IP PAYLOAD}
