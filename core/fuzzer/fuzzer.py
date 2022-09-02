@@ -73,7 +73,7 @@ class Bypass_Fuzzer():
             if resp_parsed.fragment:
                 resp_path = resp_parsed.path + '#' + resp_parsed.fragment
             else:
-                resp_path = resp_parsed.path
+                resp_path = urlunparse(resp_parsed._replace(scheme="", netloc=""))
 
             self.show_results(response, resp_path, self.hide)
 

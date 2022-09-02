@@ -19,7 +19,6 @@ def setup_url_payloads(url, url_payloads_file):
 
     paths = []
     for i, piece in enumerate(path_pieces):
-        path_pieces[len(path_pieces)-1]
         for payload in payloads:
             # prefix payload
             path_pieces[i] = f"{payload}{piece}"
@@ -31,13 +30,45 @@ def setup_url_payloads(url, url_payloads_file):
             paths.append('/'.join(path_pieces))
             path_pieces[i] = piece
 
+    # add some extra goodies to the last piece of path
+    extra_suffix_payloads = [
+        ".html", "?.html", "%3f.html", 
+        ".json", "?.json", "%3f.json", 
+        ".php", "?.php", "%3f.php",
+        "/application.wadl?detail=true", "?debug=true"
+        ]
+
+    original_piece = path_pieces[-1]
+    for payload in extra_suffix_payloads:
+        path_pieces[-1] = f"{path_pieces[-1]}{payload}"
+        paths.append('/'.join(path_pieces))
+        path_pieces[i] = original_piece
+    
     # sort and dedupe
     paths = sorted(set(paths))
 
+    original_query = parsed.query
     for p in paths:
-        parsed = parsed._replace(path=p)
-        url_payloads.append(urlunparse(parsed))
+        # Keep an eye out for payloads that have an "extra" suffix
+        if any(extra in p.split('/')[-1] for extra in extra_suffix_payloads):
+            # Remove the orignal query string, add as a payload
+            parsed = parsed._replace(query="", path=p)
+            url_payloads.append(urlunparse(parsed))
+
+            # if there's already a '?' in the path, 
+            # we need to add the original query string as addtl. params
+            if '?' in parsed.path:
+                parsed = parsed._replace(path=f"{p}&{original_query}")
+                url_payloads.append(urlunparse(parsed))
+
+            # add the original query string & add as a payload
+            parsed = parsed._replace(query=original_query, path=p)
+            url_payloads.append(urlunparse(parsed))
+        else:
+            parsed = parsed._replace(path=p)
+            url_payloads.append(urlunparse(parsed))
  
+
     return url_payloads
 
 

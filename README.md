@@ -1,8 +1,7 @@
 # Bypass Fuzzer
-The original bypassfuzzer.py :)
+The original 403fuzzer.py :)
 
 Fuzz 401/403ing endpoints for bypasses
-
 
 This tool performs various checks via headers, path normalization, verbs, etc. to attempt to bypass ACL's or URL validation.
 
