@@ -152,6 +152,6 @@ bypassfuzzer.py -u https://example.com/forbidden -hl 638
 <br>
 
 # TODO
-- [ ] Automatically check other methods/verbs for bypass
+- [x] Automatically check other methods/verbs for bypass
 - [x] absolute domain attack
 - [ ] Looking for ideas. Ping me on twitter! @intrudir

@@ -55,7 +55,7 @@ class Bypass_Fuzzer():
         session.proxies = self.proxies
 
         for payload in self.header_payloads:
-            response, payload = send_header_attack(session, self.url, method, headers, body_data, cookies, payload)
+            response = send_header_attack(session, self.url, method, headers, body_data, cookies, payload)
             self.show_results(response, payload, self.hide)
 
 
@@ -67,7 +67,7 @@ class Bypass_Fuzzer():
         session.proxies = self.proxies
 
         for payload in self.url_payloads:
-            req, response = send_url_attack(session, payload, method, headers, body_data, cookies)
+            response = send_url_attack(session, payload, method, headers, body_data, cookies)
             resp_parsed = urlparse(response.url)
     
             if resp_parsed.fragment:
@@ -123,3 +123,33 @@ class Bypass_Fuzzer():
                 print("Retrying...")
             
             retry += 1
+
+
+    def verb_attack(self, method, headers, body_data, cookies):
+        if self.Filter:
+            self.Filter._db = {}
+
+        session = requests.Session()
+        session.proxies = self.proxies
+
+        methods = [
+            "OPTIONS", "GET", "POST", "PUT", 
+            "PATCH", "DELETE", "TRACE", "LOCK"
+            ]
+
+        session = requests.Session()
+        session.proxies = self.proxies
+
+        for method in methods:
+            response = send_method_attack(session, self.url, method, headers, body_data, cookies)
+
+            self.show_results(response, method, self.hide)
+
+            if len(response.text) < 1:
+                print("Response length was 0 so probably NOT worth checking out....\n")
+
+            print("Response Headers: ")
+            for h, v in response.headers.items():
+                print(f"\t{h}: {v}")
+            
+            print("\n\n")

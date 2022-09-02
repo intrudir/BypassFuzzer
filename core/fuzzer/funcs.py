@@ -117,7 +117,7 @@ def send_header_attack(s, url, method, headers, body_data, cookies, payload):
     while not success:
         if retry > 3:
             print("Retried 3 times.")
-            break
+            return None
 
         try:
             # has fragmemnts in url at this point
@@ -132,7 +132,7 @@ def send_header_attack(s, url, method, headers, body_data, cookies, payload):
         retry += 1
 
     headers.pop(hdr)
-    return response, payload
+    return response
 
 
 def send_url_attack(s, payload, method, headers, body_data, cookies):
@@ -147,7 +147,7 @@ def send_url_attack(s, payload, method, headers, body_data, cookies):
     while not success:
         if retry > 3:
             print("Retried 3 times.")
-            break
+            return None
 
         try:
             # has fragmemnts in url at this point
@@ -161,19 +161,27 @@ def send_url_attack(s, payload, method, headers, body_data, cookies):
 
         retry += 1
 
-    return req, response
+    return response
 
 
-def send_method_attack(url, headers, cookies, proxies):
-    resp = requests.options(
-        url, cookies=cookies, proxies=proxies, headers=headers, verify=False)
-    
-    print(f"Response code: {resp.status_code}   Response length: {len(resp.text)}\
-        Sent OPTIONS method. \n")
+def send_method_attack(s, url, method, headers, body_data, cookies):
+    success, retry = False, 0
+    while not success:
+        if retry > 3:
+            print("Retried 3 times.")
+            return None
+        try:
+            response = s.request(
+                method, url, data=body_data, cookies=cookies, 
+                headers=headers, verify=False)
+            
+            success = True
+        
+        except Exception as e:
+            print(f"Method causing a hang-up: {method}")
+            print(f"Error I get: \n\t{e}")
+            print("Retrying...")
 
-    if len(resp.text) < 1:
-        print("Response length was 0 so probably NOT worth checking out....\n")
+        retry += 1
 
-    print("Response Headers: ")
-    for h, v in resp.headers.items():
-        print(f"{h}: {v}")
+    return response

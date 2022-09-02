@@ -79,6 +79,9 @@ parser.add_argument(
 parser.add_argument(
     '-std', '--skip-td', action="store_true", default=False, dest='skip_td',
     help="Skip testing trailing dot attack")
+parser.add_argument(
+    '-sm', '--skip-method', action="store_true", default=False, dest='skip_method',
+    help="Skip testing verb attacks")
 
 # misc
 parser.add_argument(
@@ -189,6 +192,10 @@ if __name__ == "__main__":
             Fuzzer.trailing_dot_attack(req_method, headers, body_data, cookies)
         else:
             print("\nProxy flag was detected. Skipping trailing dot attack...")
+    
+    if not args.skip_method:
+        print("\nAttacking via different verbs...")
+        Fuzzer.verb_attack(req_method, headers, body_data, cookies)
 
     # print("\nSending OPTIONS request. Inspect the response...")
     # send_options(url, headers, cookies, PROXIES)
