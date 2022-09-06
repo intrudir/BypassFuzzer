@@ -154,4 +154,5 @@ bypassfuzzer.py -u https://example.com/forbidden -hl 638
 # TODO
 - [x] Automatically check other methods/verbs for bypass
 - [x] absolute domain attack
+- [ ] Add HTTP/2 support
 - [ ] Looking for ideas. Ping me on twitter! @intrudir
