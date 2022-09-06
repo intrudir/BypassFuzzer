@@ -35,11 +35,14 @@ parser.add_argument(
     '-u', '--url', action="store", default=None, dest='url',
     help="Specify the target URL")
 parser.add_argument(
+     '-hv', '--http-vers', action="store", default="HTTP/1.1", dest='http_vers',
+     help="Specify the HTTP version e.g. 'HTTP/1.1', 'HTTP/2', etc")
+parser.add_argument(
     '-m', '--method', action="store", default='GET', dest='method',
     choices=('GET', 'POST', 'PUT', 'PATCH', 'DELETE'),
     help="Specify the HTTP method/verb")
 parser.add_argument(
-     '-d', '--data', action="store", default=None, dest='data_params',
+     '-d', '--data', action="store", default={}, dest='data_params',
      help="Specify data to send with the request.")
 parser.add_argument(
      '-c', '--cookies', action="store", default=None, dest='cookies',
@@ -134,7 +137,7 @@ if args.request:
     # Grab various pieces of the req
     req_method = RAW_REQ.command
     endpoint = RAW_REQ.path
-    http_proto = RAW_REQ.request_version
+    http_vers = RAW_REQ.request_version
     headers = RAW_REQ.headers
     cookies = RAW_REQ.cookies
     body_data = RAW_REQ.data
@@ -151,8 +154,9 @@ else:
     # https://example.com/test/test2?p1=1&p2=2
     req_method = args.method
     url = args.url
+    http_vers = args.http_vers
     cookies = parse_cookies(args.cookies) if args.cookies else {}
-    body_data = args.data_params if args.data_params else {}
+    body_data = args.data_params
 
     # if headers are specified, parse them
     if args.header:
@@ -175,11 +179,11 @@ if __name__ == "__main__":
     
     if not args.skip_headers:
         print("Attacking with header payloads...")
-        Fuzzer.header_attack(req_method, headers, body_data, cookies)
+        Fuzzer.header_attack(req_method, http_vers, headers, body_data, cookies)
 
     if not args.skip_urls:
         print("\nAttacking via URL & path...")
-        Fuzzer.path_attack(req_method, headers, body_data, cookies)
+        Fuzzer.path_attack(req_method, http_vers, headers, body_data, cookies)
     
     if not args.skip_td:   
         """
@@ -189,13 +193,10 @@ if __name__ == "__main__":
         """
         if not args.proxy:
             print("\nTrailing dot attack...")
-            Fuzzer.trailing_dot_attack(req_method, headers, body_data, cookies)
+            Fuzzer.trailing_dot_attack(req_method, http_vers, headers, body_data, cookies)
         else:
             print("\nProxy flag was detected. Skipping trailing dot attack...")
     
     if not args.skip_method:
         print("\nAttacking via different verbs...")
-        Fuzzer.verb_attack(req_method, headers, body_data, cookies)
-
-    # print("\nSending OPTIONS request. Inspect the response...")
-    # send_options(url, headers, cookies, PROXIES)
+        Fuzzer.verb_attack(req_method, http_vers, headers, body_data, cookies)

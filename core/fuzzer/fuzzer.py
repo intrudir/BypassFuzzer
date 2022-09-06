@@ -47,7 +47,10 @@ class Bypass_Fuzzer():
         # print(f'URL Sent: {response.url}')
 
 
-    def header_attack(self, method, headers, body_data, cookies):
+    def header_attack(self, method, http_vers, headers, body_data, cookies):
+        if http_vers == "HTTP/2":
+            print("NOTE: HTTP/2 was detected in your original request, but I can only do HTTP/1.1 for now.")
+
         if self.Filter:
             self.Filter._db = {}
 
@@ -59,7 +62,10 @@ class Bypass_Fuzzer():
             self.show_results(response, payload, self.hide)
 
 
-    def path_attack(self, method, headers, body_data, cookies):
+    def path_attack(self, method, http_vers, headers, body_data, cookies):
+        if http_vers == "HTTP/2":
+            print("NOTE: HTTP/2 was detected in your original request, but I can only do HTTP/1.1 for now.")
+
         if self.Filter:
             self.Filter._db = {}
 
@@ -78,7 +84,10 @@ class Bypass_Fuzzer():
             self.show_results(response, resp_path, self.hide)
 
 
-    def trailing_dot_attack(self, method, headers, body_data, cookies):
+    def trailing_dot_attack(self, method, http_vers, headers, body_data, cookies):
+        if http_vers == "HTTP/2":
+            print("NOTE: HTTP/2 was detected in your original request, but I can only do HTTP/1.1 for now.")
+        
         if self.Filter:
             self.Filter._db = {}
 
@@ -125,7 +134,10 @@ class Bypass_Fuzzer():
             retry += 1
 
 
-    def verb_attack(self, method, headers, body_data, cookies):
+    def verb_attack(self, method, http_vers, headers, body_data, cookies):
+        if http_vers == "HTTP/2":
+            print("NOTE: HTTP/2 was detected in your original request, but I can only do HTTP/1.1 for now.")
+        
         if self.Filter:
             self.Filter._db = {}
 

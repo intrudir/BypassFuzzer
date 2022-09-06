@@ -6,8 +6,19 @@ class HTTPRequestReader(BaseHTTPRequestHandler):
     def __init__(self, raw_http_request):
         self.rfile = BytesIO(raw_http_request.encode('utf-8'))
         self.raw_requestline = self.rfile.readline()
+        
+        # BaseHTTPRequestHandler doesn't support HTTP/2 
+        # so we gotta work around it
+        http_2 = False
+        if 'HTTP/2' in self.raw_requestline.decode():
+            self.raw_requestline = self.raw_requestline.decode().replace("HTTP/2", "HTTP/1.1").encode()
+            http_2 = True
+            
         self.error_code = self.error_message = None
         self.parse_request()
+
+        if http_2:
+            self.request_version = "HTTP/2"
 
         self.headers = dict(self.headers)
         # Data

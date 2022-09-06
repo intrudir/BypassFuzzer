@@ -133,7 +133,5 @@ dmypy.json
 .pyre/
 
 # other
-req.txt
-test
-
+*.txt
 
