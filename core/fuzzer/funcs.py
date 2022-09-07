@@ -38,11 +38,12 @@ def setup_url_payloads(url, url_payloads_file):
         "/application.wadl?detail=true", "?debug=true"
         ]
 
-    original_piece = path_pieces[-1]
-    for payload in extra_suffix_payloads:
-        path_pieces[-1] = f"{path_pieces[-1]}{payload}"
-        paths.append('/'.join(path_pieces))
-        path_pieces[i] = original_piece
+    if len(path_pieces) > 0:
+        original_piece = path_pieces[-1]
+        for payload in extra_suffix_payloads:
+            path_pieces[-1] = f"{path_pieces[-1]}{payload}"
+            paths.append('/'.join(path_pieces))
+            path_pieces[i] = original_piece
     
     # sort and dedupe
     paths = sorted(set(paths))
