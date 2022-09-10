@@ -109,7 +109,8 @@ def send_header_attack(s, url, method, headers, body_data, cookies, payload):
     headers[hdr] = payload.split(" ")[1]
 
     req = requests.Request(
-        url=url, method=method, data=body_data, cookies=cookies, headers=headers)
+        url=url, method=method, data=body_data, cookies=cookies, 
+        headers=headers)
 
     prep = s.prepare_request(req)
     prep.url = url
@@ -122,7 +123,7 @@ def send_header_attack(s, url, method, headers, body_data, cookies, payload):
 
         try:
             # has fragmemnts in url at this point
-            response = s.send(prep, verify=False)
+            response = s.send(prep, verify=False, allow_redirects=False)
             success = True
         
         except Exception as e:
@@ -139,7 +140,8 @@ def send_header_attack(s, url, method, headers, body_data, cookies, payload):
 def send_url_attack(s, payload, method, headers, body_data, cookies):
     
     req = requests.Request(
-        url=payload, method=method, data=body_data, cookies=cookies, headers=headers)
+        url=payload, method=method, data=body_data, 
+        cookies=cookies, headers=headers)
 
     prep = s.prepare_request(req)
     prep.url = payload
@@ -152,7 +154,7 @@ def send_url_attack(s, payload, method, headers, body_data, cookies):
 
         try:
             # has fragmemnts in url at this point
-            response = s.send(prep, verify=False)
+            response = s.send(prep, verify=False, allow_redirects=False)
             success = True
 
         except Exception as e:
@@ -174,7 +176,7 @@ def send_method_attack(s, url, method, headers, body_data, cookies):
         try:
             response = s.request(
                 method, url, data=body_data, cookies=cookies, 
-                headers=headers, verify=False)
+                headers=headers, verify=False, allow_redirects=False)
             
             success = True
         

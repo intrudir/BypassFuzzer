@@ -29,11 +29,12 @@ class Bypass_Fuzzer():
     def show_results(self, response, payload, hide):
         msg = f"Response Code: {response.status_code}\tLength: {len(response.text)}\tPayload: {payload}"
 
-        if response.status_code > 400:
+        if response.status_code > 400:  # errors
             msg = self.colors["red"] + msg
-        elif response.status_code >= 300 and response.status_code < 400:
-            msg = self.colors["white"] + msg
-        elif response.status_code < 300 and response.status_code >= 200:
+        elif response.status_code >= 300 and response.status_code < 400: # redirects
+            msg = self.colors["yellow"] + msg 
+            msg += f"  -->   {response.headers['Location']}"  # Show destination
+        elif response.status_code >= 200 and response.status_code < 300:  # OK
             msg = self.colors["green"] + msg
 
         if self.Filter:
