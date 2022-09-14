@@ -26,7 +26,7 @@ class Bypass_Fuzzer():
         }
 
 
-    def show_results(self, response, payload, hide):
+    def show_results(self, response, payload, hide, show_resp_headers=False):
         msg = f"Response Code: {response.status_code}\tLength: {len(response.text)}\tPayload: {payload}"
 
         if response.status_code > 400:  # errors
@@ -40,9 +40,19 @@ class Bypass_Fuzzer():
         if self.Filter:
             if self.Filter.check(response.status_code, str(len(response.text))):
                 print(msg)
+                
+                if show_resp_headers:
+                    print("Response Headers: ")
+                    for h, v in response.headers.items():
+                        print(f"\t{h}: {v}")
         else:
             if str(response.status_code) not in hide["codes"] and str(len(response.text)) not in hide["lengths"]:
                 print(msg)
+                
+                if show_resp_headers:
+                    print("Response Headers: ")
+                    for h, v in response.headers.items():
+                        print(f"\t{h}: {v}")
 
         # Uncomment to see what the full URL looked like when sent
         # print(f'URL Sent: {response.url}')
@@ -60,7 +70,7 @@ class Bypass_Fuzzer():
 
         for payload in self.header_payloads:
             response = send_header_attack(session, self.url, method, headers, body_data, cookies, payload)
-            self.show_results(response, payload, self.hide)
+            self.show_results(response, payload, self.hide, show_resp_headers=False)
 
 
     def path_attack(self, method, http_vers, headers, body_data, cookies):
@@ -82,7 +92,7 @@ class Bypass_Fuzzer():
             else:
                 resp_path = urlunparse(resp_parsed._replace(scheme="", netloc=""))
 
-            self.show_results(response, resp_path, self.hide)
+            self.show_results(response, resp_path, self.hide, show_resp_headers=False)
 
 
     def trailing_dot_attack(self, method, http_vers, headers, body_data, cookies):
@@ -125,7 +135,7 @@ class Bypass_Fuzzer():
                 response = session.send(prep, verify=False)
                 success = True
                 
-                self.show_results(response, payload, self.hide)
+                self.show_results(response, payload, self.hide, show_resp_headers=True)
 
             except requests.exceptions.RequestException as e:
                 print(f"Path payload causing a hang-up: {payload}")
@@ -146,23 +156,31 @@ class Bypass_Fuzzer():
         session.proxies = self.proxies
 
         methods = [
-            "OPTIONS", "GET", "POST", "PUT", 
-            "PATCH", "DELETE", "TRACE", "LOCK"
+            "OPTIONS", "GET", "POST", "PUT", "CONNECT",
+            "PATCH", "DELETE", "TRACE", "LOCK", "HACK"
             ]
-
-        session = requests.Session()
-        session.proxies = self.proxies
 
         for method in methods:
             response = send_method_attack(session, self.url, method, headers, body_data, cookies)
 
-            self.show_results(response, method, self.hide)
+            self.show_results(response, method, self.hide, show_resp_headers=True)
 
             if len(response.text) < 1:
                 print("Response length was 0 so probably NOT worth checking out....\n")
-
-            print("Response Headers: ")
-            for h, v in response.headers.items():
-                print(f"\t{h}: {v}")
             
-            print("\n\n")
+    
+    def http_proto_attack(self, method, headers, body_data, cookies):
+        from http.client import HTTPConnection
+        
+        if self.Filter:
+            self.Filter._db = {}
+
+        for http_vers in ["HTTP/1.0", "HTTP/0.9"]:
+            HTTPConnection._http_vsn_str = http_vers
+
+            session = requests.Session()
+            session.proxies = self.proxies
+
+            response = send_http_proto_attack(session, self.url, method, headers, body_data, cookies)
+            
+            self.show_results(response, http_vers, self.hide, show_resp_headers=True)

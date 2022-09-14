@@ -85,6 +85,9 @@ parser.add_argument(
 parser.add_argument(
     '-sm', '--skip-method', action="store_true", default=False, dest='skip_method',
     help="Skip testing verb attacks")
+parser.add_argument(
+    '-sp', '--skip-protocol', action="store_true", default=False, dest='skip_protocol',
+    help="Skip testing HTTP protocol attacks")
 
 # misc
 parser.add_argument(
@@ -182,7 +185,7 @@ if __name__ == "__main__":
         Fuzzer.header_attack(req_method, http_vers, headers, body_data, cookies)
 
     if not args.skip_urls:
-        print("\nAttacking via URL & path...")
+        print("\n\nAttacking via URL & path...")
         Fuzzer.path_attack(req_method, http_vers, headers, body_data, cookies)
     
     if not args.skip_td:   
@@ -192,11 +195,15 @@ if __name__ == "__main__":
         domains with the trailing dot and will freak out about illegal SSL.
         """
         if not args.proxy:
-            print("\nTrailing dot attack...")
+            print("\n\nTrailing dot attack...")
             Fuzzer.trailing_dot_attack(req_method, http_vers, headers, body_data, cookies)
         else:
             print("\nProxy flag was detected. Skipping trailing dot attack...")
     
     if not args.skip_method:
-        print("\nAttacking via different verbs...")
+        print("\n\nAttacking via different verbs...")
         Fuzzer.verb_attack(req_method, http_vers, headers, body_data, cookies)
+
+    if not args.skip_protocol:
+        print("\n\nAttacking via different HTTP versions...")
+        Fuzzer.http_proto_attack(req_method, headers, body_data, cookies)

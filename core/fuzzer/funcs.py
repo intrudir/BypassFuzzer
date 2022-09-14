@@ -188,3 +188,25 @@ def send_method_attack(s, url, method, headers, body_data, cookies):
         retry += 1
 
     return response
+
+
+def send_http_proto_attack(s, url, method, headers, body_data, cookies):
+    success, retry = False, 0
+    while not success:
+        if retry > 3:
+            print("Retried 3 times.")
+            return None
+        try:
+            response = s.request(
+                method, url, data=body_data, cookies=cookies, 
+                headers={}, verify=False, allow_redirects=False)
+            
+            success = True
+        
+        except Exception as e:
+            print(f"Error I get: \n\t{e}")
+            print("Retrying...")
+
+        retry += 1
+
+    return response
