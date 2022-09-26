@@ -175,12 +175,12 @@ class Bypass_Fuzzer():
         if self.Filter:
             self.Filter._db = {}
 
+        session = requests.Session()
+        session.proxies = self.proxies
+        session.headers.clear()
+
         for http_vers in ["HTTP/1.0", "HTTP/0.9"]:
             HTTPConnection._http_vsn_str = http_vers
-
-            session = requests.Session()
-            session.proxies = self.proxies
-
             response = send_http_proto_attack(session, self.url, method, headers, body_data, cookies)
             
             self.show_results(response, http_vers, self.hide, show_resp_headers=True)

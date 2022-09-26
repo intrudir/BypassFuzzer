@@ -191,6 +191,13 @@ def send_method_attack(s, url, method, headers, body_data, cookies):
 
 
 def send_http_proto_attack(s, url, method, headers, body_data, cookies):
+    
+    req = requests.Request(method, url, data=body_data, cookies=cookies)
+    prep = s.prepare_request(req)
+    
+    # Remove headers. These are 1 line protocols.
+    prep.headers = {}
+
     success, retry = False, 0
     while not success:
         if retry > 3:
