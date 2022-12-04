@@ -1,5 +1,6 @@
 import requests
 
+from random import choice
 from urllib.parse import urlparse, urlunparse
 
 
@@ -30,12 +31,20 @@ def setup_url_payloads(url, url_payloads_file):
             paths.append('/'.join(path_pieces))
             path_pieces[i] = piece
 
+            # random capitals payload
+            for x in range(5):
+                path_pieces[i] = ''.join(choice((str.upper, str.lower))(c) for c in piece)
+                paths.append('/'.join(path_pieces))
+                path_pieces[i] = piece
+                
     # add some extra goodies to the last piece of path
     extra_suffix_payloads = [
         ".html", "?.html", "%3f.html", 
         ".json", "?.json", "%3f.json", 
         ".php", "?.php", "%3f.php",
-        "/application.wadl?detail=true", "?debug=true"
+        "?wsdl", "/application.wadl?detail=true", 
+        "?debug=true", "?admin=true", 
+        "?user=admin", "?detail=true"
         ]
 
     if len(path_pieces) > 0:
