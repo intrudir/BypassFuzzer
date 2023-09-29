@@ -1,95 +1,107 @@
 import requests
 
 from random import choice
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import urlsplit, urlunsplit
 
 
 def setup_url_payloads(url, url_payloads_file):
     ''' Set up URL & path payloads '''
 
-    # ParseResult(scheme='https', netloc='example.com', path='/test/test2',
-    # params='', query='p1=1&p2=2', fragment='')
-    parsed = urlparse(url) 
-    path = parsed.path  # /test/test2
-    path_pieces = ' '.join(parsed.path.split('/')).split()  # ['test', 'test2']
-
-    ### Set up URL payloads
+    # Load payloads file
     url_payloads = []
     with open(url_payloads_file, 'r') as pf:
         payloads = pf.read().splitlines()
 
-    paths = []
-    for i, piece in enumerate(path_pieces):
+    # SplitResult(scheme='https', netloc='example.com', path='/test/test2',
+    # params='', query='p1=1&p2=2', fragment='')
+    parts = urlsplit(url)
+    og_path_pieces = list(filter(None, parts.path.split('/'))) # clear the empty item
+
+    new_paths = []
+    # new_url = urlunsplit((parts.scheme, parts.netloc, new_path, parts.query, parts.fragment))
+    for i, piece in enumerate(og_path_pieces):
         for payload in payloads:
-            # prefix payload
-            path_pieces[i] = f"{payload}{piece}"
-            paths.append('/'.join(path_pieces))
-            path_pieces[i] = piece
+            new_path_pieces = list(og_path_pieces) # get fresh copy of OG path
+            new_path_pieces[i] = f"{payload}{piece}"  # xtest1/test2/test3
+            new_paths.append("/".join(new_path_pieces))
 
-            # suffix payload
-            path_pieces[i] = f"{piece}{payload}"
-            paths.append('/'.join(path_pieces))
-            path_pieces[i] = piece
+            new_path_pieces = list(og_path_pieces)
+            new_path_pieces[i] = f"{piece}{payload}"  # test1x/test2/test3
+            new_paths.append("/".join(new_path_pieces))
 
-            # random capitals payload
-            for x in range(5):
-                path_pieces[i] = ''.join(choice((str.upper, str.lower))(c) for c in piece)
-                paths.append('/'.join(path_pieces))
-                path_pieces[i] = piece
+            new_path_pieces = list(og_path_pieces) 
+            new_path_pieces[i] = f"{payload}{piece}{payload}"  # xtest1x/test2/test3
+            new_paths.append("/".join(new_path_pieces))
+
+        # random capitals payloads
+        for x in range(5):
+            new_path_pieces = list(og_path_pieces)
+            new_path_pieces[i] = ''.join(choice((str.upper, str.lower))(c) for c in piece)
+            new_paths.append('/'.join(new_path_pieces))
                 
     # add some extra goodies to the last piece of path
-    extra_suffix_payloads = [
+    new_query_payloads = []
+    query_payloads = [
+        "?debug=true", "?admin=true",
+        "?user=admin", "?detail=true",
         ".html", "?.html", "%3f.html", 
         ".json", "?.json", "%3f.json", 
         ".php", "?.php", "%3f.php",
         "?wsdl", "/application.wadl?detail=true", 
-        "?debug=true", "?admin=true", 
-        "?user=admin", "?detail=true"
         ]
 
-    if len(path_pieces) > 0:
-        original_piece = path_pieces[-1]
-        for payload in extra_suffix_payloads:
-            path_pieces[-1] = f"{path_pieces[-1]}{payload}"
-            paths.append('/'.join(path_pieces))
-            path_pieces[i] = original_piece
+    for suffix in query_payloads:
+        for x in range(3):
+            capped_payload = ''.join(choice((str.upper, str.lower))(c) for c in suffix)
+            new_query_payloads.append(capped_payload)
+    
+    # join and dedupe the 2 suffix lists
+    query_payloads.extend(new_query_payloads)
+    query_payloads = sorted(set(query_payloads))
+
+    if len(og_path_pieces) > 0:
+        original_piece = og_path_pieces[-1]
+        for payload in query_payloads:
+            new_path_pieces[-1] = f"{og_path_pieces[-1]}{payload}"
+            new_paths.append('/'.join(new_path_pieces))
+            new_path_pieces[i] = original_piece
     
     # sort and dedupe
-    paths = sorted(set(paths))
+    new_paths = sorted(set(new_paths))
 
-    original_query = parsed.query
-    for p in paths:
+    original_query = parts.query
+    original_parts = parts
+    for p in new_paths:
+        parts = original_parts
         # Keep an eye out for payloads that have an "extra" suffix
-        if any(extra in p.split('/')[-1] for extra in extra_suffix_payloads):
+        if any(extra in p.split('/')[-1] for extra in query_payloads):
             # Remove the orignal query string, add as a payload
-            parsed = parsed._replace(query="", path=p)
-            url_payloads.append(urlunparse(parsed))
+            parts = parts._replace(query="", path=p)
+            url_payloads.append(urlunsplit(parts))
 
             # if there's already a '?' in the path, 
             # we need to add the original query string as addtl. params
-            if '?' in parsed.path:
-                parsed = parsed._replace(path=f"{p}&{original_query}")
-                url_payloads.append(urlunparse(parsed))
 
-            # add the original query string & add as a payload
-            parsed = parsed._replace(query=original_query, path=p)
-            url_payloads.append(urlunparse(parsed))
+            if original_query:
+                parts = original_parts
+                if '?' in p.split('/')[-1] or "%3f" in p.split('/')[-1].lower():
+                    parts = parts._replace(query="", path=f"{p}&{original_query}")
+                    url_payloads.append(urlunsplit(parts))
         else:
-            parsed = parsed._replace(path=p)
-            url_payloads.append(urlunparse(parsed))
- 
+            parts = parts._replace(path=p)
+            url_payloads.append(urlunsplit(parts))
+
 
     return url_payloads
-
 
 def setup_header_payloads(url, header_payloads_template, ip_payloads_file):
     ''' Set up header payloads '''
 
     # ParseResult(scheme='https', netloc='example.com', path='/test/test2',
     # params='', query='p1=1&p2=2', fragment='')
-    parsed = urlparse(url) 
+    parsed = urlsplit(url) 
     path = parsed.path  # /test/test2
- 
+
     header_payloads = []
 
     with open(header_payloads_template, 'r') as pf:
@@ -109,11 +121,12 @@ def setup_header_payloads(url, header_payloads_template, ip_payloads_file):
         else:
             continue
 
+    #TODO: prepend stuff to host header 
+
     return header_payloads
 
-
 def send_header_attack(s, url, method, headers, body_data, cookies, payload):
-    
+
     hdr = payload.split(" ")[0].strip(":")
     headers[hdr] = payload.split(" ")[1]
 

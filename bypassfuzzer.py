@@ -5,7 +5,6 @@ import os
 import argparse
 import requests
 
-from urllib.parse import urlparse, urlunparse
 from time import sleep
 
 from core.functions import *
@@ -96,15 +95,10 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-
 if len(sys.argv) <= 1:
     parser.print_help()
     print()
     sys.exit()
-
-if args.smart_filter and (args.hc or args.hl):
-    print("Can't do smart filter together with hide code or hide length yet")
-    sys.exit(1)
 
 # if proxy, set it for requests
 proxies = {}
@@ -115,7 +109,7 @@ if args.proxy:
         print(f"You specified an invalid proxy: {args.proxy}")
         print("Don't forget to include the schema (http|https)")
         exit(1)
-    
+
 # get response codes and lengths to hide from result
 hide = {"codes": [], "lengths": []}
 if args.hc:
@@ -125,32 +119,27 @@ if args.hl:
     for i in args.hl.split(','):
         hide["lengths"].append(i)
 
+if args.smart_filter and (args.hc or args.hl):
+    print("Can't do smart filter together with hide code or hide length yet")
+    sys.exit(1)
+
 # read a text file with a request in it
 if args.request:
     print("Request file specified.")
-    print("The endpoint path specified in the file will overwrite the endpoint path you specify with (-u, --url).")
-    print("Sleeping 5 seconds...")
-    sleep(5)
 
-    with open(args.request) as inf:  
+    with open(args.request) as inf:
         raw_http_request = inf.read()
-    
+
     RAW_REQ = HTTPRequestReader(raw_http_request)
 
     # Grab various pieces of the req
+    url = RAW_REQ.url
     req_method = RAW_REQ.command
     endpoint = RAW_REQ.path
     http_vers = RAW_REQ.request_version
     headers = RAW_REQ.headers
     cookies = RAW_REQ.cookies
     body_data = RAW_REQ.data
-
-    # # The endpoint path in the request file should overwrite what we have in -u, --url flag.
-    parsed = urlparse(args.url)
-    parsed = parsed._replace(query="")
-    parsed = parsed._replace(fragment="")
-    parsed = parsed._replace(path=endpoint)
-    url = urlunparse(parsed)
 
 else:
     # If we're not using a request from a file, we are using the URL from the -u flag.
@@ -179,31 +168,27 @@ if __name__ == "__main__":
     # Set up the fuzzer for attack
     Fuzzer = Bypass_Fuzzer(url, proxies, args.smart_filter, hide,
         URL_PAYLOADS_FILE, HDR_PAYLOADS_TEMPLATE, IP_PAYLOADS_FILE)
-    
+
     if not args.skip_headers:
-        print("Attacking with header payloads...")
         Fuzzer.header_attack(req_method, http_vers, headers, body_data, cookies)
 
     if not args.skip_urls:
-        print("\n\nAttacking via URL & path...")
+        Fuzzer.trail_slash(req_method, http_vers, headers, body_data, cookies)
         Fuzzer.path_attack(req_method, http_vers, headers, body_data, cookies)
-    
-    if not args.skip_td:   
+
+    if not args.skip_td:
         """
         Try sending with absolute domain (trailing dot).
         If proxy flag is set, skip this. Burp has issues processing 
         domains with the trailing dot and will freak out about illegal SSL.
         """
         if not args.proxy:
-            print("\n\nTrailing dot attack...")
             Fuzzer.trailing_dot_attack(req_method, http_vers, headers, body_data, cookies)
         else:
             print("\nProxy flag was detected. Skipping trailing dot attack...")
-    
+
     if not args.skip_method:
-        print("\n\nAttacking via different verbs...")
         Fuzzer.verb_attack(req_method, http_vers, headers, body_data, cookies)
 
     if not args.skip_protocol:
-        print("\n\nAttacking via different HTTP versions...")
         Fuzzer.http_proto_attack(req_method, headers, body_data, cookies)

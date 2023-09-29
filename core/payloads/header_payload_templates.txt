@@ -57,7 +57,10 @@ X-Http-Host-Override: {IP PAYLOAD}
 X-Original-Remote-Addr: {IP PAYLOAD}
 X-Original-URL: {IP PAYLOAD}
 X-Original-URL: {PATH PAYLOAD},
+X-Original-URL: {URL PAYLOAD},
 X-Original-Url: {IP PAYLOAD}
+X-Original-Url: {PATH PAYLOAD}
+X-Original-Url: {URL PAYLOAD}
 X-Originally-Forwarded-For: {IP PAYLOAD}
 X-Originating-IP: {IP PAYLOAD}
 X-Override-Url: {IP PAYLOAD}
