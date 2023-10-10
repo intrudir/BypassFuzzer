@@ -37,6 +37,9 @@ parser.add_argument(
      '-hv', '--http-vers', action="store", default="HTTP/1.1", dest='http_vers',
      help="Specify the HTTP version e.g. 'HTTP/1.1', 'HTTP/2', etc")
 parser.add_argument(
+     '--scheme', action="store", default="https", dest='http_scheme',
+     help="Specify the URL scheme e.g. 'https', 'http', etc. Defaults to https.")
+parser.add_argument(
     '-m', '--method', action="store", default='GET', dest='method',
     choices=('GET', 'POST', 'PUT', 'PATCH', 'DELETE'),
     help="Specify the HTTP method/verb")
@@ -130,7 +133,7 @@ if args.request:
     with open(args.request) as inf:
         raw_http_request = inf.read()
 
-    RAW_REQ = HTTPRequestReader(raw_http_request)
+    RAW_REQ = HTTPRequestReader(raw_http_request, args.http_scheme)
 
     # Grab various pieces of the req
     url = RAW_REQ.url

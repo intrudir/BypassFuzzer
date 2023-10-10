@@ -3,7 +3,7 @@ from io import BytesIO
 
 
 class HTTPRequestReader(BaseHTTPRequestHandler):
-    def __init__(self, raw_http_request):
+    def __init__(self, raw_http_request, scheme="https"):
         self.rfile = BytesIO(raw_http_request.encode('utf-8'))
         self.raw_requestline = self.rfile.readline()
 
@@ -21,7 +21,7 @@ class HTTPRequestReader(BaseHTTPRequestHandler):
             self.request_version = "HTTP/2"
 
         # Extract the URL & headers
-        self.url = self.extract_url()
+        self.url = self.extract_url(scheme)
         self.headers = dict(self.headers)
         # Data
         try:
@@ -40,9 +40,8 @@ class HTTPRequestReader(BaseHTTPRequestHandler):
                 cookie_value = ''.join(cookie_parts[1:]).strip()
                 self.cookies[cookie_name] = cookie_value
 
-    def extract_url(self):
+    def extract_url(self, scheme):
         # Combine the scheme, netloc, and path to form the full URL
-        scheme = "https" if self.headers.get("Upgrade-Insecure-Requests") == "1" else "http"
         netloc = self.headers.get("Host", "")
         full_url = f"{scheme}://{netloc}{self.path}"
         

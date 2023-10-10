@@ -1,3 +1,7 @@
+Authorization:
+Authorization:  
+Authorization: Bearer
+Authorization: Bearer A
 Base-Url: {URL PAYLOAD}
 Base-Url: {IP PAYLOAD}
 CF-Connecting-IP: {IP PAYLOAD}
