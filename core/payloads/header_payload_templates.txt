@@ -1,7 +1,7 @@
-Authorization:
-Authorization:  
 Authorization: Bearer
+Authorization: Bearer {WHITESPACE PAYLOAD}
 Authorization: Bearer A
+Authorization: {WHITESPACE PAYLOAD}
 Base-Url: {URL PAYLOAD}
 Base-Url: {IP PAYLOAD}
 CF-Connecting-IP: {IP PAYLOAD}

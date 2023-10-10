@@ -114,6 +114,9 @@ def setup_header_payloads(url, header_payloads_template, ip_payloads_file):
         if "{IP PAYLOAD}" in header:
             for ip_payload in ip_payloads:
                 header_payloads.append(header.replace("{IP PAYLOAD}", ip_payload))
+        elif "{WHITESPACE PAYLOAD}" in header:
+            for ws_payload in [" "]:
+                header_payloads.append(header.replace("{WHITESPACE PAYLOAD}", ws_payload))
         elif "{URL PAYLOAD}" in header:
             header_payloads.append(header.replace("{URL PAYLOAD}", url))
         elif "{PATH PAYLOAD}" in header:
