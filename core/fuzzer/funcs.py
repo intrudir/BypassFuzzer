@@ -119,9 +119,9 @@ def setup_header_payloads(url, header_payloads_template, ip_payloads_file):
         elif "{PATH PAYLOAD}" in header:
             header_payloads.append(header.replace("{PATH PAYLOAD}", path))
         else:
-            continue
+            header_payloads.append(header)
 
-    #TODO: prepend stuff to host header 
+    #TODO: prepend stuff to host header
 
     return header_payloads
 
