@@ -1,7 +1,9 @@
 Authorization: Bearer
 Authorization: Bearer {WHITESPACE PAYLOAD}
-Authorization: Bearer A
 Authorization: {WHITESPACE PAYLOAD}
+Authorization: Bearer A
+Authorization: Bearer a a
+X-Forwarded-For: {IP PAYLOAD}
 Base-Url: {URL PAYLOAD}
 Base-Url: {IP PAYLOAD}
 CF-Connecting-IP: {IP PAYLOAD}
@@ -38,9 +40,8 @@ X-Custom-IP-Authorization..;/: {IP PAYLOAD}
 X-Custom-IP-Authorization..;: {IP PAYLOAD}
 X-Custom-IP-Authorization: {IP PAYLOAD}
 X-Forward-For: {IP PAYLOAD}
-X-Forwarded-By: {IP PAYLOAD}
 X-Forwarded-For-Original: {IP PAYLOAD}
-X-Forwarded-For: {IP PAYLOAD}
+X-Forwarded-By: {IP PAYLOAD}
 X-Forwarded-Host: {IP PAYLOAD}
 X-Forwarded-Port: 443
 X-Forwarded-Port: 4443
