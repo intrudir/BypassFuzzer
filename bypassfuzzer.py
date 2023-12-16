@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-import sys 
-import os 
+import sys
+import os
 import argparse
 import requests
 
@@ -130,7 +130,7 @@ if args.smart_filter and (args.hc or args.hl):
 if args.request:
     print("Request file specified.")
 
-    with open(args.request) as inf:
+    with open(args.request, encoding="UTF-8") as inf:
         raw_http_request = inf.read()
 
     RAW_REQ = HTTPRequestReader(raw_http_request, args.http_scheme)
@@ -180,11 +180,10 @@ if __name__ == "__main__":
         Fuzzer.path_attack(req_method, http_vers, headers, body_data, cookies)
 
     if not args.skip_td:
-        """
-        Try sending with absolute domain (trailing dot).
-        If proxy flag is set, skip this. Burp has issues processing 
-        domains with the trailing dot and will freak out about illegal SSL.
-        """
+        # Try sending with absolute domain (trailing dot).
+        # If proxy flag is set, skip this. Burp has issues processing 
+        # domains with the trailing dot and will freak out about illegal SSL.
+
         if not args.proxy:
             Fuzzer.trailing_dot_attack(req_method, http_vers, headers, body_data, cookies)
         else:

@@ -131,11 +131,16 @@ def setup_header_payloads(url, header_payloads_template, ip_payloads_file):
 def send_header_attack(s, url, method, headers, body_data, cookies, payload):
 
     hdr = payload.split(" ")[0].strip(":")
+
+    # preserve existing header value
+    preserve_header_value = None
+    if hdr in headers:
+        preserve_header_value = headers[hdr]
+
     headers[hdr] = payload.split(" ")[1]
 
     req = requests.Request(
-        url=url, method=method, data=body_data, cookies=cookies, 
-        headers=headers)
+        url=url, method=method, data=body_data, cookies=cookies, headers=headers)
 
     prep = s.prepare_request(req)
     prep.url = url
@@ -150,15 +155,19 @@ def send_header_attack(s, url, method, headers, body_data, cookies, payload):
             # has fragmemnts in url at this point
             response = s.send(prep, verify=False, allow_redirects=False)
             success = True
-        
+
         except Exception as e:
             print(f"Header payload causing a hang-up: {hdr}")
             print(f"Error I get: \n\t{e}")
             print("Retrying...")
-        
+
         retry += 1
 
-    headers.pop(hdr)
+    if preserve_header_value:  # reset to OG value
+        headers[hdr] = preserve_header_value
+    else:
+        del headers[hdr]
+
     return response
 
 
