@@ -51,7 +51,7 @@ parser.add_argument(
      help="Specify cookies to use in requests. \
          (e.g., --cookies \"cookie1=blah; cookie2=blah\")")
 parser.add_argument(
-     '-H', '--header', action="append", default=None, dest='header',
+     '-H', '--header', action="append", default=None, dest='header', nargs='+',
      help="Add headers to your request\
          (e.g., --header \"Accept: application/json\" --header \"Host: example.com\"")
 parser.add_argument(
@@ -155,12 +155,17 @@ else:
 
     # if headers are specified, parse them
     if args.header:
+        # Flatten the entered headers to normalize them
+        # The input could look like this: `[['a:b'], ['c:', 'd'], ['/tmp/a.txt']]`, if invoked like `-H "a:b" -H 'c: d' -H /tmp/a.txt`
+        # We want to convert it into this: `['a:b', 'c: d', '/tmp/a.txt']`
+        flattened_headers = [ " ".join (x) for x in args.header ]
+
         # If header specified is a text file, read it and get headers out of it.
-        if '.txt' in args.header:
-            with open(args.header, 'r') as f:  
+        if os.path.isfile (flattened_headers [0]):
+            with open(flattened_headers [0], 'r') as f:
                 new_headers = f.read().splitlines()
         else:
-            new_headers = args.header
+            new_headers = flattened_headers
 
         headers = parse_headers(new_headers)
     else:
