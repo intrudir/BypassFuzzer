@@ -19,7 +19,7 @@ IP_PAYLOADS_FILE = f"{PAYLOADS_DIR}/ip_payloads.txt"
 URL_PAYLOADS_FILE = f"{PAYLOADS_DIR}/url_payloads.txt"
 
 # Load banner
-with open(f'{SCRIPT_DIR}/core/banner.txt', 'r') as inf:
+with open(f'{SCRIPT_DIR}/core/banner.txt', 'r', encoding='utf-8') as inf:
     BANNER = inf.read()
 
 print(BANNER)
