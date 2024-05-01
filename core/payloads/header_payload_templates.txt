@@ -79,6 +79,7 @@ X-Remote-Addr: {IP PAYLOAD}
 X-Remote-IP: {IP PAYLOAD}
 X-Request-ID: 1234567890
 X-Request-ID: 12345678901234567890
+X-Requested-With: XMLHttpRequest
 X-Rewrite-URL: {IP PAYLOAD}
 X-Rewrite-Url: {IP PAYLOAD}
 X-Rewrite-Url: {PATH PAYLOAD}
