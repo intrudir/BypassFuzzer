@@ -15,7 +15,12 @@ def is_json(some_json):
 def parse_headers(headers_to_parse):
     if headers_to_parse:
         req_headers = {}
-        headers = {x.split(":", 1)[0]: x.split(":", 1)[1].strip() for x in headers_to_parse}
+        headers = {
+                x.split(":", 1)[0] # Should always exist
+                :
+                x.split(":", 1)[1].strip() if ":" in x else "" # May not exist, if the user didn't specify a header properly or smth, idk
+                for x in headers_to_parse
+            }
         req_headers.update(headers)
 
         if not "User-Agent" in headers:
