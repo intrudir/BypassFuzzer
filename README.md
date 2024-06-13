@@ -29,20 +29,21 @@ python3 -m pip install -r requirements.txt
 ### Windows
 ```bash
 # clone the repo (or download it as a zip!) then navigate to the directory
+# if you download the .zip, remember to extract it first
 cd BypassFuzzer-main\
 
 # it is best practice to create a new virtual env. 
 py -m venv .venv
 
 # activate the venv
-.venv\scripts\activate
+.venv\Scripts\activate
 
 # install dependencies
 # you need to use 'python' cmd in order to use the interpreter from this environment.
 python -m pip install -r .\requirements.txt
 ```
 
-For windows, in order to use the script make sure you use the `python` command. This ensures you are using the virtual environment.
+For Windows, in order to use the script make sure you use the `python` command. This ensures you are using the virtual environment.
 
 ---
 # Usage
