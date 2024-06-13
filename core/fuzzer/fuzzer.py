@@ -1,13 +1,16 @@
+from urllib.parse import urlsplit, urlunsplit
 import colorama
 import requests
 
-from . import funcs
 from core.fuzzer.filter import SmartFilter
-from urllib.parse import urlsplit, urlunsplit
+from core.fuzzer import funcs
 
 
-class Bypass_Fuzzer():
-    def __init__(self, url, proxies, filter, hide, url_payloads_file, hdr_payloads_template, ip_payloads_file):
+class BypassFuzzer():
+    """
+    Main class for the fuzzer
+    """
+    def __init__(self, url, proxies, sfilter, hide, url_payloads_file, hdr_payloads_template, ip_payloads_file):
         self.url = url
         self.proxies = proxies
         self.hide = hide
@@ -15,7 +18,7 @@ class Bypass_Fuzzer():
         self.url_payloads = funcs.setup_url_payloads(self.url, url_payloads_file)
 
         # Only allow repeats of 8 common responses
-        self.Filter = SmartFilter(repeats=8) if filter else None
+        self.filter = SmartFilter(repeats=8) if sfilter else None
 
         colorama.init(autoreset=True)
         self.colors = {
@@ -28,6 +31,9 @@ class Bypass_Fuzzer():
         }
 
     def show_results(self, response, payload, hide, show_resp_headers=False):
+        """
+        Show the results of the attack
+        """
         msg = f"Response Code: {response.status_code}\tLength: {len(response.text)}\tPayload: {payload}"
 
         if response.status_code > 400:  # errors
@@ -38,8 +44,8 @@ class Bypass_Fuzzer():
         elif response.status_code >= 200 and response.status_code < 300:  # OK
             msg = self.colors["green"] + msg
 
-        if self.Filter:
-            if self.Filter.check(response.status_code, str(len(response.text))):
+        if self.filter:
+            if self.filter.check(response.status_code, str(len(response.text))):
                 print(msg)
 
                 if show_resp_headers:
@@ -59,13 +65,16 @@ class Bypass_Fuzzer():
         # print(f'URL Sent: {response.url}')
 
     def header_attack(self, method, http_vers, headers, body_data, cookies):
+        """
+        Attack with payloads in the headers
+        """
         print("Attacking with header payloads...")
 
         if http_vers == "HTTP/2":
             print("NOTE: HTTP/2 was detected in your original request, but I can only do HTTP/1.1 for now.")
 
-        if self.Filter:
-            self.Filter._db = {}
+        if self.filter:
+            self.filter.db = {}
 
         session = requests.Session()
         session.proxies = self.proxies
@@ -86,8 +95,8 @@ class Bypass_Fuzzer():
         if http_vers == "HTTP/2":
             print("NOTE: HTTP/2 was detected in your original request, but I can only do HTTP/1.1 for now.")
 
-        if self.Filter:
-            self.Filter._db = {}
+        if self.filter:
+            self.filter.db = {}
 
         session = requests.Session()
         session.proxies = self.proxies
@@ -107,13 +116,16 @@ class Bypass_Fuzzer():
         self.show_results(response, payload, self.hide, show_resp_headers=False)
 
     def path_attack(self, method, http_vers, headers, body_data, cookies):
+        """
+        Attack with payloads in the path
+        """
         print("\n\nAttacking via URL & path...")
 
         if http_vers == "HTTP/2":
             print("NOTE: HTTP/2 was detected in your original request, but I can only do HTTP/1.1 for now.")
 
-        if self.Filter:
-            self.Filter._db = {}
+        if self.filter:
+            self.filter.db = {}
 
         session = requests.Session()
         session.proxies = self.proxies
@@ -124,18 +136,20 @@ class Bypass_Fuzzer():
             self.show_results(response, resp_path, self.hide, show_resp_headers=False)
 
     def trailing_dot_attack(self, method, http_vers, headers, body_data, cookies):
+        """
+        Attack with absolute domain
+        """
         print("\n\nTrailing dot attack...")
         if http_vers == "HTTP/2":
             print("NOTE: HTTP/2 was detected in your original request, but I can only do HTTP/1.1 for now.")
 
-        if self.Filter:
-            self.Filter._db = {}
+        if self.filter:
+            self.filter.db = {}
 
         session = requests.Session()
         session.proxies = self.proxies
 
         parsed = urlsplit(self.url)
-        og_domain = parsed.netloc
 
         if ':' in parsed.netloc:
             absolute_domain = parsed.netloc.split(':')[0] + '.:' + parsed.netloc.split(':')[1]
@@ -174,13 +188,16 @@ class Bypass_Fuzzer():
             retry += 1
 
     def verb_attack(self, method, http_vers, headers, body_data, cookies):
+        """
+        Attack with different HTTP verbs
+        """
         print("\n\nAttacking via different verbs...")
 
         if http_vers == "HTTP/2":
             print("NOTE: HTTP/2 was detected in your original request, but I can only do HTTP/1.1 for now.")
 
-        if self.Filter:
-            self.Filter._db = {}
+        if self.filter:
+            self.filter.db = {}
 
         session = requests.Session()
         session.proxies = self.proxies
@@ -199,12 +216,15 @@ class Bypass_Fuzzer():
                 print("Response length was 0 so probably NOT worth checking out....\n")
 
     def http_proto_attack(self, method, headers, body_data, cookies):
+        """
+        Attack with different HTTP versions
+        """
         print("\n\nAttacking via different HTTP versions...")
 
         from http.client import HTTPConnection
 
-        if self.Filter:
-            self.Filter._db = {}
+        if self.filter:
+            self.filter.db = {}
 
         session = requests.Session()
         session.proxies = self.proxies
@@ -213,5 +233,5 @@ class Bypass_Fuzzer():
         for http_vers in ["HTTP/1.0", "HTTP/0.9"]:
             HTTPConnection._http_vsn_str = http_vers
             response = funcs.send_http_proto_attack(session, self.url, method, headers, body_data, cookies)
-            
+
             self.show_results(response, http_vers, self.hide, show_resp_headers=True)

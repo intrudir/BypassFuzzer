@@ -5,10 +5,8 @@ import os
 import argparse
 import requests
 
-from time import sleep
-
-from core.functions import *
-from core.fuzzer.fuzzer import Bypass_Fuzzer
+from core import funcs
+from core.fuzzer.fuzzer import BypassFuzzer
 from core.http_reqs.http_req import HTTPRequestReader
 
 
@@ -19,7 +17,7 @@ IP_PAYLOADS_FILE = f"{PAYLOADS_DIR}/ip_payloads.txt"
 URL_PAYLOADS_FILE = f"{PAYLOADS_DIR}/url_payloads.txt"
 
 # Load banner
-with open(f'{SCRIPT_DIR}/core/banner.txt', 'r') as inf:
+with open(f'{SCRIPT_DIR}/core/banner.txt', 'r', encoding='UTF-8') as inf:
     BANNER = inf.read()
 
 print(BANNER)
@@ -150,26 +148,26 @@ else:
     req_method = args.method
     url = args.url
     http_vers = args.http_vers
-    cookies = parse_cookies(args.cookies) if args.cookies else {}
+    cookies = funcs.parse_cookies(args.cookies) if args.cookies else {}
     body_data = args.data_params
 
     # if headers are specified, parse them
     if args.header:
         # If header specified is a text file, read it and get headers out of it.
         if '.txt' in args.header:
-            with open(args.header, 'r') as f:  
+            with open(args.header, 'r', encoding='UTF-8') as f:
                 new_headers = f.read().splitlines()
         else:
             new_headers = args.header
 
-        headers = parse_headers(new_headers)
+        headers = funcs.parse_headers(new_headers)
     else:
         # Use the defaults from parse_headers
-        headers = parse_headers("")
+        headers = funcs.parse_headers("")
 
 if __name__ == "__main__":
     # Set up the fuzzer for attack
-    Fuzzer = Bypass_Fuzzer(url, proxies, args.smart_filter, hide,
+    Fuzzer = BypassFuzzer(url, proxies, args.smart_filter, hide,
         URL_PAYLOADS_FILE, HDR_PAYLOADS_TEMPLATE, IP_PAYLOADS_FILE)
 
     if not args.skip_headers:
@@ -181,7 +179,7 @@ if __name__ == "__main__":
 
     if not args.skip_td:
         # Try sending with absolute domain (trailing dot).
-        # If proxy flag is set, skip this. Burp has issues processing 
+        # If proxy flag is set, skip this. Burp has issues processing
         # domains with the trailing dot and will freak out about illegal SSL.
 
         if not args.proxy:
