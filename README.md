@@ -1,24 +1,56 @@
 # Bypass Fuzzer
 The original 403fuzzer.py :)
 
-Fuzz 401/403ing endpoints for bypasses
+**Fuzz 401/403ing endpoints for bypasses**
 
-This tool performs various checks via headers, path normalization, verbs, etc. to attempt to bypass ACL's or URL validation.
+Perform various checks via headers, path normalization, verbs, etc. to attempt to bypass ACL's or URL validation.
+- Output the response codes and length for each request, in a nicely organized, color coded way so things are readable.
+- "Smart" filter that lets you mute responses that look the same after a certain number of times.
+- Feed it raw HTTP requests from Burp.
 
-It will output the response codes and length for each request, in a nicely organized, color coded way so things are reaable.
+**Follow me on twitter! @intrudir**
 
-I implemented a "Smart Filter" that lets you mute responses that look the same after a certain number of times.
+### Linux & Mac OS
+```bash
+# clone the repo (or download it as a zip!) then navigate to the directory
+git clone https://github.com/NetSPI/BypassFuzzer.git
+cd BypassFuzzer
 
-You can now feed it raw HTTP requests that you save to a file from Burp.
+# it is best practice to create a new virtual env. 
+python3 -m venv .venv
 
-#### Follow me on twitter! @intrudir
+# activate the venv
+source .venv/bin/activate
+
+# install dependencies
+python3 -m pip install -r requirements.txt
+```
+
+### Windows
+```bash
+# clone the repo (or download it as a zip!) then navigate to the directory
+cd BypassFuzzer-main\
+
+# it is best practice to create a new virtual env. 
+py -m venv .venv
+
+# activate the venv
+.venv\scripts\activate
+
+# install dependencies
+# you need to use 'python' cmd in order to use the interpreter from this environment.
+python -m pip install -r .\requirements.txt
+```
+
+For windows, in order to use the script make sure you use the `python` command. This ensures you are using the virtual environment.
 
 ---
 # Usage
+See the help menu
 ```bash
-usage: bypassfuzzer.py -h
+bypassfuzzer.py -h
 ```
-## Specifying a request to test
+## Specifying a request
 ### Best method: Feed it a raw HTTP request from Burp!
 Simply paste the request into a file and run the script!  
 - It will parse and use `cookies` & `headers` from the request.
@@ -28,7 +60,7 @@ python3 bypassfuzzer.py -r request.txt
 ```
 ![image](https://user-images.githubusercontent.com/24526564/188021983-2f38bac0-c144-45ce-9a45-3db32470a136.png)
 
-### Using other flags
+### Using the flags
 **Specify a URL**
 ```bash
 python3 bypassfuzzer.py -u http://example.com/test1/test2/test3/forbidden.html
@@ -73,15 +105,15 @@ Useful if you wanna proxy through Burp
 bypassfuzzer.py -u https://example.com/forbidden --proxy http://127.0.0.1:8080
 ```
 
-## Skip sending header payloads or url payloads
+## Skip sending specific payload types
 ```bash
-# skip sending headers payloads
+# skip sending header payloads
 bypassfuzzer.py -u https://example.com/forbidden -sh
-bypassfuzzer.py -u https://example.com/forbidden --skip-headers
+# or --skip-headers
 
 # Skip sending path normailization payloads
 bypassfuzzer.py -u https://example.com/forbidden -su
-bypassfuzzer.py -u https://example.com/forbidden --skip-urls
+# or --skip-urls
 ```
 
 ## Hide response code/length
@@ -99,4 +131,5 @@ bypassfuzzer.py -u https://example.com/forbidden -hl 638
 - [x] Automatically check other methods/verbs for bypass
 - [x] absolute domain attack
 - [ ] Add HTTP/2 support
+- [ ] add method to save responses and refer to them later. Similar to kiterunner
 - [ ] Looking for ideas. Ping me on twitter! @intrudir
