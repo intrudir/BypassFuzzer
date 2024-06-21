@@ -1,10 +1,11 @@
 from urllib.parse import urlsplit, urlunsplit
+import http.client
 import colorama
 import requests
-
 from core.fuzzer.filter import SmartFilter
 from core.fuzzer import funcs
 
+http.client._MAXHEADERS = 200
 
 class BypassFuzzer():
     """
@@ -81,7 +82,9 @@ class BypassFuzzer():
 
         for payload in self.header_payloads:
             response = funcs.send_header_attack(session, self.url, method, headers, body_data, cookies, payload)
-            self.show_results(response, payload, self.hide, show_resp_headers=False)
+
+            if response:
+                self.show_results(response, payload, self.hide, show_resp_headers=False)
 
 
     def trail_slash(self, method, http_vers, headers, body_data, cookies):
@@ -113,7 +116,8 @@ class BypassFuzzer():
         payload = urlunsplit(parsed)
         response = funcs.send_url_attack(session, payload, method, headers, body_data, cookies)
 
-        self.show_results(response, payload, self.hide, show_resp_headers=False)
+        if response:
+            self.show_results(response, payload, self.hide, show_resp_headers=False)
 
     def path_attack(self, method, http_vers, headers, body_data, cookies):
         """
@@ -132,8 +136,10 @@ class BypassFuzzer():
 
         for payload in self.url_payloads:
             response = funcs.send_url_attack(session, payload, method, headers, body_data, cookies)
-            resp_path = response.url.split('/',2)[-1]
-            self.show_results(response, resp_path, self.hide, show_resp_headers=False)
+
+            if response:
+                resp_path = response.url.split('/',2)[-1]
+                self.show_results(response, resp_path, self.hide, show_resp_headers=False)
 
     def trailing_dot_attack(self, method, http_vers, headers, body_data, cookies):
         """
@@ -176,9 +182,10 @@ class BypassFuzzer():
 
             try:
                 response = session.send(prep, verify=False)
-                success = True
 
-                self.show_results(response, payload, self.hide, show_resp_headers=True)
+                if response:
+                    success = True
+                    self.show_results(response, payload, self.hide, show_resp_headers=True)
 
             except requests.exceptions.RequestException as e:
                 print(f"Path payload causing a hang-up: {payload}")
@@ -210,7 +217,8 @@ class BypassFuzzer():
         for method in methods:
             response = funcs.send_method_attack(session, self.url, method, headers, body_data, cookies)
 
-            self.show_results(response, method, self.hide, show_resp_headers=True)
+            if response:
+                self.show_results(response, method, self.hide, show_resp_headers=True)
 
             if len(response.text) < 1:
                 print("Response length was 0 so probably NOT worth checking out....\n")
@@ -234,4 +242,5 @@ class BypassFuzzer():
             HTTPConnection._http_vsn_str = http_vers
             response = funcs.send_http_proto_attack(session, self.url, method, headers, body_data, cookies)
 
-            self.show_results(response, http_vers, self.hide, show_resp_headers=True)
+            if response:
+                self.show_results(response, http_vers, self.hide, show_resp_headers=True)
