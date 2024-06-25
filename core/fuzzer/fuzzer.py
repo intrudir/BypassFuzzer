@@ -83,7 +83,7 @@ class BypassFuzzer():
         for payload in self.header_payloads:
             response = funcs.send_header_attack(session, self.url, method, headers, body_data, cookies, payload)
 
-            if response:
+            if response is not None:
                 self.show_results(response, payload, self.hide, show_resp_headers=False)
 
 
@@ -116,7 +116,7 @@ class BypassFuzzer():
         payload = urlunsplit(parsed)
         response = funcs.send_url_attack(session, payload, method, headers, body_data, cookies)
 
-        if response:
+        if response is not None:
             self.show_results(response, payload, self.hide, show_resp_headers=False)
 
     def path_attack(self, method, http_vers, headers, body_data, cookies):
@@ -137,7 +137,7 @@ class BypassFuzzer():
         for payload in self.url_payloads:
             response = funcs.send_url_attack(session, payload, method, headers, body_data, cookies)
 
-            if response:
+            if response is not None:
                 resp_path = response.url.split('/',2)[-1]
                 self.show_results(response, resp_path, self.hide, show_resp_headers=False)
 
@@ -183,7 +183,7 @@ class BypassFuzzer():
             try:
                 response = session.send(prep, verify=False)
 
-                if response:
+                if response is not None:
                     success = True
                     self.show_results(response, payload, self.hide, show_resp_headers=True)
 
@@ -217,7 +217,7 @@ class BypassFuzzer():
         for method in methods:
             response = funcs.send_method_attack(session, self.url, method, headers, body_data, cookies)
 
-            if response:
+            if response is not None:
                 self.show_results(response, method, self.hide, show_resp_headers=True)
 
             if len(response.text) < 1:
@@ -242,5 +242,5 @@ class BypassFuzzer():
             HTTPConnection._http_vsn_str = http_vers
             response = funcs.send_http_proto_attack(session, self.url, method, headers, body_data, cookies)
 
-            if response:
+            if response is not None:
                 self.show_results(response, http_vers, self.hide, show_resp_headers=True)
