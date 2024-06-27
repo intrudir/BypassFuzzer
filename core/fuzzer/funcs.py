@@ -161,7 +161,7 @@ def send_header_attack(s, url, method, headers, body_data, cookies, payload):
 
     success, retry = False, 0
     while not success:
-        if retry > 3:
+        if retry > 2:
             print("Retried 3 times.")
             return None
 
@@ -195,7 +195,7 @@ def send_url_attack(s, payload, method, headers, body_data, cookies):
 
     success, retry = False, 0
     while not success:
-        if retry > 3:
+        if retry > 2:
             print("Retried 3 times.")
             return None
 
@@ -217,7 +217,7 @@ def send_url_attack(s, payload, method, headers, body_data, cookies):
 def send_method_attack(s, url, method, headers, body_data, cookies):
     success, retry = False, 0
     while not success:
-        if retry > 3:
+        if retry > 2:
             print("Retried 3 times.")
             return None
         try:
@@ -252,7 +252,7 @@ def send_http_proto_attack(s, url, method, headers, body_data, cookies):
 
     success, retry = False, 0
     while not success:
-        if retry > 3:
+        if retry > 2:
             print("Retried 3 times.")
             return None
         try:

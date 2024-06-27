@@ -210,7 +210,7 @@ class BypassFuzzer:
         payload = prep.url
         success, retry = False, 0
         while not success:
-            if retry > 3:
+            if retry > 2:
                 print("Retried 3 times.")
                 break
 
