@@ -98,6 +98,9 @@ class BypassFuzzer:
         session = requests.Session()
         session.proxies = self.proxies
 
+        # preserve the original headers incase of an error
+        og_headers = headers.copy()
+
         for payload in self.header_payloads:
             response = funcs.send_header_attack(
                 session, self.url, method, headers, body_data, cookies, payload
@@ -105,6 +108,8 @@ class BypassFuzzer:
 
             if response is not None:
                 self.show_results(response, payload, self.hide, show_resp_headers=False)
+            else:
+                headers = og_headers.copy()  # reset headers
 
     def trail_slash(self, method, http_vers, headers, body_data, cookies):
         """If the URL is: https://example.com/test/test2

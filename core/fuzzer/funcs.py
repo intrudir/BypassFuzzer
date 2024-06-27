@@ -163,6 +163,7 @@ def send_header_attack(s, url, method, headers, body_data, cookies, payload):
     while not success:
         if retry > 2:
             print("Retried 3 times.")
+            print(f"Last error I got: \n\t{last_error}")
             return None
 
         try:
@@ -171,9 +172,8 @@ def send_header_attack(s, url, method, headers, body_data, cookies, payload):
             success = True
 
         except Exception as e:
-            print(f"Header payload causing a hang-up: {hdr}")
-            print(f"Error I get: \n\t{e}")
-            print("Retrying...")
+            last_error = e
+            print(f"Header payload causing a hang-up: {payload}  Retrying...")
 
         retry += 1
 
@@ -197,6 +197,7 @@ def send_url_attack(s, payload, method, headers, body_data, cookies):
     while not success:
         if retry > 2:
             print("Retried 3 times.")
+            print(f"Last error I got: \n\t{last_error}")
             return None
 
         try:
@@ -205,9 +206,8 @@ def send_url_attack(s, payload, method, headers, body_data, cookies):
             success = True
 
         except Exception as e:
-            print(f"Path payload causing a hang-up: {payload}")
-            print(f"Error I get: \n\t{e}")
-            print("Retrying...")
+            last_error = e
+            print(f"Path payload causing a hang-up: {payload}  Retrying...")
 
         retry += 1
 
@@ -219,6 +219,7 @@ def send_method_attack(s, url, method, headers, body_data, cookies):
     while not success:
         if retry > 2:
             print("Retried 3 times.")
+            print(f"Last error I got: \n\t{last_error}")
             return None
         try:
             response = s.request(
@@ -234,9 +235,8 @@ def send_method_attack(s, url, method, headers, body_data, cookies):
             success = True
 
         except Exception as e:
+            last_error = e
             print(f"Method causing a hang-up: {method}")
-            print(f"Error I get: \n\t{e}")
-            print("Retrying...")
 
         retry += 1
 
@@ -254,6 +254,7 @@ def send_http_proto_attack(s, url, method, headers, body_data, cookies):
     while not success:
         if retry > 2:
             print("Retried 3 times.")
+            print(f"Last error I get: \n\t{last_error}")
             return None
         try:
             response = s.request(
@@ -269,8 +270,8 @@ def send_http_proto_attack(s, url, method, headers, body_data, cookies):
             success = True
 
         except Exception as e:
-            print(f"Error I get: \n\t{e}")
-            print("Retrying...")
+            last_error = e
+            print(f"Error while trying proto attack. Retrying...")
 
         retry += 1
 
