@@ -1,7 +1,8 @@
-class SmartFilter():
-    """ All credit for this filter goes to whoever did this:
+class SmartFilter:
+    """All credit for this filter goes to @defparam:
     https://gist.github.com/defparam/8067cc4eb0140399f2bcd5f66a860db4
     """
+
     def __init__(self, repeats=10):
         # our data base to keep track of history
         self.db = {}
@@ -10,7 +11,7 @@ class SmartFilter():
 
     def check(self, status, wordlen):
         # We make a directory key by concating status code + number of words
-        key = str(status)+str(wordlen)
+        key = str(status) + str(wordlen)
         # if never seen this key before, add it to the dictionary with 1 hit
         if key not in self.db:
             self.db[key] = 1

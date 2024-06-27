@@ -21,18 +21,23 @@ def parse_headers(headers_to_parse):
     """
     if headers_to_parse:
         req_headers = {}
-        headers = {x.split(":", 1)[0]: x.split(":", 1)[
-            1].strip() for x in headers_to_parse}
+        headers = {
+            x.split(":", 1)[0]: x.split(":", 1)[1].strip() for x in headers_to_parse
+        }
         req_headers.update(headers)
 
-        if not "User-Agent" in headers:
+        if "User-Agent" not in headers:
             req_headers.update(
-                {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0"})
+                {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0"
+                }
+            )
 
     else:
         # Set default headers
         req_headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0"}
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101 Firefox/78.0"
+        }
 
     return req_headers
 
