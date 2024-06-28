@@ -22,13 +22,15 @@ class BypassFuzzer:
         url_payloads_file,
         hdr_payloads_template,
         ip_payloads_file,
+        oob_payload,
     ):
         self.url = url
         self.proxies = proxies
         self.hide = hide
         self.header_payloads = funcs.setup_header_payloads(
-            self.url, hdr_payloads_template, ip_payloads_file
+            self.url, hdr_payloads_template, ip_payloads_file, oob_payload
         )
+        self.oob_payload = oob_payload
         self.url_payloads = funcs.setup_url_payloads(self.url, url_payloads_file)
 
         # Only allow repeats of 8 common responses
@@ -109,7 +111,8 @@ class BypassFuzzer:
             if response is not None:
                 self.show_results(response, payload, self.hide, show_resp_headers=False)
             else:
-                headers = og_headers.copy()  # reset headers
+                headers = og_headers.copy()  # reset headers when there's an error
+        
 
     def trail_slash(self, method, http_vers, headers, body_data, cookies):
         """If the URL is: https://example.com/test/test2
@@ -235,6 +238,7 @@ class BypassFuzzer:
 
             retry += 1
 
+
     def verb_attack(self, method, http_vers, headers, body_data, cookies):
         """
         Attack with different HTTP verbs
@@ -274,8 +278,52 @@ class BypassFuzzer:
             if response is not None:
                 self.show_results(response, method, self.hide, show_resp_headers=True)
 
-            if len(response.text) < 1:
-                print("Response length was 0 so probably NOT worth checking out....\n")
+                if len(response.text) < 1:
+                    print("Response length was 0 so probably NOT worth checking out....\n")
+        
+        override_methods = [
+            "GET",
+            "PUT"
+        ]
+        override_method_headers = [
+            "X-HTTP-Method-Override",
+            "X-Method-Override"
+            "X-HTTP-Method",
+        ]
+        override_method_parameters = [
+            "x-http-method-override",
+            "x-method-override",
+            "method",
+            "_method",
+            "m",
+            "_m",
+        ]
+
+        print("\n\nAttacking via METHOD OVERRIDE header...")
+        # preserve the original headers incase of an error
+        og_headers = headers.copy()
+        for omh in override_method_headers:
+            for om in override_methods:
+                response = funcs.send_method_override_header(
+                    session, self.url, omh, om, headers, body_data, cookies
+                )
+
+                if response is not None:
+                    self.show_results(response, om, self.hide, show_resp_headers=True)
+                else:
+                    headers = og_headers.copy()  # reset headers when there's an error
+        
+        print("\n\nAttacking via METHOD OVERRIDE parameter...")
+        for mop in override_method_parameters:
+            for om in override_methods:
+                om = om.lower()
+                response = funcs.send_method_override_parameter(
+                    session, self.url, mop, om, headers, body_data, cookies
+                )
+
+                if response is not None:
+                    self.show_results(response, f"{mop}={om}", self.hide, show_resp_headers=True)
+
 
     def http_proto_attack(self, method, headers, body_data, cookies):
         """

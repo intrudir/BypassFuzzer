@@ -43,7 +43,7 @@ py -m venv .venv
 python -m pip install -r .\requirements.txt
 ```
 
-For Windows, in order to use the script make sure you use the `python` command. This ensures you are using the virtual environment.
+For Windows, in order to use the script, make sure you use the `python` command. This ensures you are using the virtual environment.
 
 ---
 # Usage
@@ -128,9 +128,14 @@ bypassfuzzer.py -u https://example.com/forbidden -hc 403,404,400
 bypassfuzzer.py -u https://example.com/forbidden -hl 638  
 ```
 
+## Check for OOB / Blind SSRF pingback
+Provide the `--oob` flag with your collaborator or ISH domain
+You need to check for pingbacks yourself as I currently have no way of doing that for you.
+```bash
+--oob abc123.oastify.com
+```
+
 # TODO
-- [x] Automatically check other methods/verbs for bypass
-- [x] absolute domain attack
 - [ ] Add HTTP/2 support
 - [ ] add method to save responses and refer to them later. Similar to kiterunner
 - [ ] Looking for ideas. Ping me on twitter! @intrudir

@@ -105,7 +105,7 @@ def setup_url_payloads(url, url_payloads_file):
     return url_payloads
 
 
-def setup_header_payloads(url, header_payloads_template, ip_payloads_file):
+def setup_header_payloads(url, header_payloads_template, ip_payloads_file, oob_payload=None):
     """Set up header payloads"""
 
     # ParseResult(scheme='https', netloc='example.com', path='/test/test2',
@@ -134,6 +134,23 @@ def setup_header_payloads(url, header_payloads_template, ip_payloads_file):
             header_payloads.append(header.replace("{URL PAYLOAD}", url))
         elif "{PATH PAYLOAD}" in header:
             header_payloads.append(header.replace("{PATH PAYLOAD}", path))
+        elif "{OOB PAYLOAD}" in header:
+            if oob_payload:
+                oob_parsed = urlsplit(oob_payload)
+                if oob_parsed.scheme:
+                    oob_payload = oob_parsed.netloc
+                else:
+                    oob_payload = oob_parsed.path
+                header_payloads.append(header.replace("{OOB PAYLOAD}", f"http://{oob_payload}"))
+                header_payloads.append(header.replace("{OOB PAYLOAD}", f"https://{oob_payload}"))
+        elif "{OOB DOMAIN PAYLOAD}" in header:
+            if oob_payload:
+                oob_parsed = urlsplit(oob_payload)
+                if oob_parsed.scheme:
+                    oob_payload = oob_parsed.netloc
+                else:
+                    oob_payload = oob_parsed.path
+                header_payloads.append(header.replace("{OOB DOMAIN PAYLOAD}", oob_payload))
         else:
             header_payloads.append(header)
 
@@ -159,11 +176,12 @@ def send_header_attack(s, url, method, headers, body_data, cookies, payload):
     prep = s.prepare_request(req)
     prep.url = url
 
-    success, retry = False, 0
+    success, retry = False, 1
+    last_error = None
     while not success:
         if retry > 2:
-            print("Retried 3 times.")
-            print(f"Last error I got: \n\t{last_error}")
+            print("Tried 2 times.")
+            print(f"Last error I got: \t{last_error}")
             return None
 
         try:
@@ -173,7 +191,7 @@ def send_header_attack(s, url, method, headers, body_data, cookies, payload):
 
         except Exception as e:
             last_error = e
-            print(f"Header payload causing a hang-up: {payload}  Retrying...")
+            print(f"Header payload causing a hang-up: {payload}  Retrying...({retry})")
 
         retry += 1
 
@@ -193,11 +211,12 @@ def send_url_attack(s, payload, method, headers, body_data, cookies):
     prep = s.prepare_request(req)
     prep.url = payload
 
-    success, retry = False, 0
+    success, retry = False, 1
+    last_error = None
     while not success:
         if retry > 2:
-            print("Retried 3 times.")
-            print(f"Last error I got: \n\t{last_error}")
+            print("Tried 2 times.")
+            print(f"Last error I got: \t{last_error}")
             return None
 
         try:
@@ -207,7 +226,7 @@ def send_url_attack(s, payload, method, headers, body_data, cookies):
 
         except Exception as e:
             last_error = e
-            print(f"Path payload causing a hang-up: {payload}  Retrying...")
+            print(f"Path payload causing a hang-up: {payload}  Retrying...({retry})")
 
         retry += 1
 
@@ -215,11 +234,12 @@ def send_url_attack(s, payload, method, headers, body_data, cookies):
 
 
 def send_method_attack(s, url, method, headers, body_data, cookies):
-    success, retry = False, 0
+    success, retry = False, 1
+    last_error = None
     while not success:
         if retry > 2:
-            print("Retried 3 times.")
-            print(f"Last error I got: \n\t{last_error}")
+            print("Tried 2 times.")
+            print(f"Last error I got: \t{last_error}")
             return None
         try:
             response = s.request(
@@ -236,7 +256,93 @@ def send_method_attack(s, url, method, headers, body_data, cookies):
 
         except Exception as e:
             last_error = e
-            print(f"Method causing a hang-up: {method}")
+            print(f"Method causing a hang-up: {method}  Retrying...{retry}")
+
+        retry += 1
+
+    return response
+
+
+def send_method_override_header(s, url, override_header, override_method, headers, body_data, cookies):
+    hdr = override_header
+    
+    # preserve existing header value
+    preserve_header_value = None
+    if hdr in headers:
+        preserve_header_value = headers[hdr]
+
+    # set the payload
+    headers[hdr] = override_method
+
+    success, retry = False, 1
+    last_error = None
+    while not success:
+        if retry > 2:
+            print("Tried 2 times.")
+            print(f"Last error I got: \t{last_error}")
+            return None
+        try:
+            response = s.request(
+                "POST",
+                url,
+                data=body_data,
+                cookies=cookies,
+                headers=headers,
+                verify=False,
+                allow_redirects=False,
+            )
+
+            success = True
+
+        except Exception as e:
+            last_error = e
+            print(f"Method override causing a hang-up: {override_method}  Retrying...({retry})")
+
+        retry += 1
+
+    if preserve_header_value:  # reset to OG value
+        headers[hdr] = preserve_header_value
+    else:
+        del headers[hdr]
+
+    return response
+
+
+def send_method_override_parameter(s, url, override_param, override_method, headers, body_data, cookies):
+    payload = f"{override_param}={override_method}"
+
+    parsed = urlsplit(url)
+
+    if parsed.query:
+        payload = f"&{payload}"
+    else:
+        payload = f"?{payload}"
+    parsed = parsed._replace(query=f"{parsed.query}{payload}")
+    
+    url = urlunsplit(parsed)
+    req = requests.Request(
+        url=url, method="POST", data=body_data, cookies=cookies, headers=headers
+    )
+
+    prep = s.prepare_request(req)
+    prep.url = url
+
+    success, retry = False, 1
+    last_error = None
+    while not success:
+        if retry > 2:
+            print("Tried 2 times.")
+            print(f"Last error I got: \t{last_error}")
+            return None
+
+        try:
+            # has fragmemnts in url at this point
+            response = s.send(prep, verify=False, allow_redirects=False)
+            success = True
+
+        except Exception as e:
+            last_error = e
+            print(f"Method override payload causing a hang-up: {payload}  Retrying...({retry})")
 
         retry += 1
 
@@ -250,11 +356,12 @@ def send_http_proto_attack(s, url, method, headers, body_data, cookies):
     # Remove headers. These are 1 line protocols.
     prep.headers = {}
 
-    success, retry = False, 0
+    success, retry = False, 1
+    last_error = None
     while not success:
         if retry > 2:
-            print("Retried 3 times.")
-            print(f"Last error I get: \n\t{last_error}")
+            print("Retried 2 times.")
+            print(f"Last error I get: \t{last_error}")
             return None
         try:
             response = s.request(
@@ -271,7 +378,7 @@ def send_http_proto_attack(s, url, method, headers, body_data, cookies):
 
         except Exception as e:
             last_error = e
-            print(f"Error while trying proto attack. Retrying...")
+            print(f"Error while trying proto attack. Retrying...{retry}")
 
         retry += 1
 
