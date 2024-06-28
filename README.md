@@ -8,7 +8,9 @@ Perform various checks via headers, path normalization, verbs, etc. to attempt t
 - "Smart" filter that lets you mute responses that look the same after a certain number of times.
 - Feed it raw HTTP requests from Burp.
 
-**Follow me on twitter! @intrudir**
+**If this tool helped get you a bounty or you'd just like to buy me a beer:**  
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/O5O3ZVDGN)  
+**Follow me on twitter! @intrudir**  
 
 ### Linux & Mac OS
 ```bash
