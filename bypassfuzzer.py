@@ -107,12 +107,29 @@ parser.add_argument(
     help="Skip testing HTTP protocol attacks",
 )
 
+# interaction handling
+parser.add_argument(
+    "--idb", type=str, default=None, dest="interaction_db", 
+    help="The database to display interactions from."
+)
+parser.add_argument(
+    "--save-interactions", type=int, nargs='*', default=[200], dest="save_interactions", 
+    help="Save interactions matching criteria to a sqlite3 database for easy querying."
+)
+parser.add_argument(
+    "--display-interactions", type=str, default=None, dest="display_interactions",
+    help="Display a specific interaction by index or payload."
+)
+parser.add_argument(
+    "--display-by", type=str, choices=[None, 'index', 'payload'], default=None, 
+    dest="display_by", help="The method to identify the interaction to display."
+)
+
 # misc
 parser.add_argument(
     "--oob", action="store", default=None, dest="oob_payload", 
     help="Specify an OOB server like collaborator or ISH. You must keep an eye on your polling server yourself.",
 )
-
 args = parser.parse_args()
 
 if len(sys.argv) <= 1:
@@ -185,13 +202,37 @@ else:
         headers = funcs.parse_headers("")
 
 if __name__ == "__main__":
+    # Does the user want to view previous interactions?
+    # Both args must be set
+    if args.display_interactions is not None or args.display_by is not None:
+        if args.display_by is None:
+            print("You must specify a method to identify the interaction to display.")
+            sys.exit(1)
+        if args.display_interactions is None:
+            print("You must specify the interaction to display.")
+            sys.exit(1)
+
+        try:
+            if args.display_by == 'index':
+                BypassFuzzer.display_interaction(int(args.display_interactions), by=args.display_by, db_name=args.interaction_db)
+            else:
+                BypassFuzzer.display_interaction(args.display_interactions, by=args.display_by, db_name=args.interaction_db)
+        except FileNotFoundError:
+            if args.interaction_db is None:
+                print("No database file was specified or your db dir is empty.")
+            else:
+                print(f"The database file {args.interaction_db} could not be found.")
+            sys.exit(1)
+        
+        sys.exit(0)
+
     # Set up the fuzzer for attack
     Fuzzer = BypassFuzzer(
-        url, proxies,
-        args.smart_filter, hide,
+        url, proxies, args.smart_filter, hide,
         URL_PAYLOADS_FILE, HDR_PAYLOADS_TEMPLATE,
-        IP_PAYLOADS_FILE, args.oob_payload
-    )
+        IP_PAYLOADS_FILE, args.oob_payload, args.save_interactions,
+        db_name=args.interaction_db)
+
 
     if not args.skip_headers:
         og_headers = headers.copy()

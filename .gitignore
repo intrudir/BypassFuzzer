@@ -136,3 +136,4 @@ dmypy.json
 *.txt
 Icon?
 
+interactions/*.db

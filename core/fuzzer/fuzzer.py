@@ -1,9 +1,11 @@
 from urllib.parse import urlsplit, urlunsplit
 import http.client
+import os
 import colorama
 import requests
 from core.fuzzer.filter import SmartFilter
 from core.fuzzer import funcs
+from core.fuzzer.db_handler import DatabaseHandler
 
 http.client._MAXHEADERS = 200
 
@@ -13,17 +15,13 @@ class BypassFuzzer:
     Main class for the fuzzer
     """
 
-    def __init__(
-        self,
-        url,
-        proxies,
-        sfilter,
-        hide,
-        url_payloads_file,
-        hdr_payloads_template,
-        ip_payloads_file,
-        oob_payload,
-    ):
+    def __init__( self, url, proxies, sfilter, hide, url_payloads_file,
+        hdr_payloads_template, ip_payloads_file, oob_payload, save_interactions,
+        db_name=None):
+        """
+        Initialize the fuzzer
+        """
+        self.payload_index = 1
         self.url = url
         self.proxies = proxies
         self.hide = hide
@@ -46,11 +44,76 @@ class BypassFuzzer:
             "reset": colorama.Style.RESET_ALL,
         }
 
+        self.db_dir = "interactions"
+        self.db_handler = DatabaseHandler(self.db_dir, db_name)
+        self.save_interactions = save_interactions
+
+    @staticmethod
+    def display_interaction(identifier, by='index', db_name=None):
+        db_dir = "interactions"
+        if db_name is None:
+            db_name = DatabaseHandler.get_latest_db(db_dir)
+
+        # Check if the database exists
+        db_path = os.path.join(db_dir, db_name)
+        if not os.path.exists(db_path):
+            raise FileNotFoundError(f"Database {db_name} not found")
+
+        db_handler = DatabaseHandler(db_dir, db_name)
+        interactions = db_handler.load_interactions()
+        interaction = None
+        
+        if by == 'index':
+            if identifier < 0:
+                print("Invalid interaction index")
+                return
+            for inter in interactions:
+                if inter[0] == identifier:
+                    interaction = inter
+                    break
+        elif by == 'payload':
+            for inter in interactions:
+                if inter[2] == identifier:
+                    interaction = inter
+                    break
+            if not interaction:
+                print(f"No interaction found for the given {by}")
+                return
+
+        if interaction:
+            url_parts = urlsplit(interaction[3])
+            if url_parts.query:
+                path = url_parts.path + "?" + url_parts.query
+            elif url_parts.fragment:
+                path = url_parts.path + "#" + url_parts.fragment
+            else:
+                path = url_parts.path
+
+            # Format request and response similar to Burp Suite's repeater window
+            request_display = f"{interaction[4]} {path} HTTP/1.1\n"
+            request_headers = eval(interaction[5])  # Convert string back to dictionary
+            for key, value in request_headers.items():
+                request_display += f"{key}: {value}\n"
+            if interaction[6]:  # Check if there is a request body
+                request_display += f"\n{interaction[6]}\n"
+
+            response_display = f"HTTP/1.1 {interaction[7]}\n"
+            response_headers = eval(interaction[8])  # Convert string back to dictionary
+            for key, value in response_headers.items():
+                response_display += f"{key}: {value}\n"
+            response_display += f"\n{interaction[9]}\n"
+
+            # Print formatted request, response, and payload
+            print(f"Payload:\n{interaction[2]}\n")
+            print(f"Request:\n{request_display}")
+            print(f"Response:\n{response_display}")
+
     def show_results(self, response, payload, hide, show_resp_headers=False):
         """
         Show the results of the attack
         """
-        msg = f"Response Code: {response.status_code}\tLength: {len(response.text)}\tPayload: {payload}"
+
+        msg = f"I: {self.payload_index}\t Response Code: {response.status_code}\tLength: {len(response.text)}\tPayload: {payload}"
 
         if response.status_code > 400:  # errors
             msg = self.colors["red"] + msg
@@ -80,9 +143,6 @@ class BypassFuzzer:
                     for h, v in response.headers.items():
                         print(f"\t{h}: {v}")
 
-        # Uncomment to see what the full URL looked like when sent
-        # print(f'URL Sent: {response.url}')
-
     def header_attack(self, method, http_vers, headers, body_data, cookies):
         """
         Attack with payloads in the headers
@@ -110,9 +170,12 @@ class BypassFuzzer:
 
             if response is not None:
                 self.show_results(response, payload, self.hide, show_resp_headers=False)
+                if response.status_code in self.save_interactions:
+                   self.db_handler.save_interaction(self.payload_index, response.request, response, payload)
             else:
                 headers = og_headers.copy()  # reset headers when there's an error
-        
+
+            self.payload_index += 1        
 
     def trail_slash(self, method, http_vers, headers, body_data, cookies):
         """If the URL is: https://example.com/test/test2
@@ -149,6 +212,10 @@ class BypassFuzzer:
 
         if response is not None:
             self.show_results(response, payload, self.hide, show_resp_headers=False)
+            if response.status_code in self.save_interactions:
+                self.db_handler.save_interaction(self.payload_index, response.request, response, payload)
+            
+        self.payload_index += 1
 
     def path_attack(self, method, http_vers, headers, body_data, cookies):
         """
@@ -173,10 +240,21 @@ class BypassFuzzer:
             )
 
             if response is not None:
-                resp_path = response.url.split("/", 2)[-1]
+                # Payload should show path + any params
+                if payload in self.url_payloads:
+                    urlsplit_payload = urlsplit(payload)
+                    if urlsplit_payload.query:
+                        payload = urlsplit_payload.path + "?" + urlsplit_payload.query
+                    elif urlsplit_payload.fragment:
+                        payload = urlsplit_payload.path + "#" + urlsplit_payload.fragment
+                    else:
+                        payload = urlsplit_payload.path
                 self.show_results(
-                    response, resp_path, self.hide, show_resp_headers=False
-                )
+                    response, payload, self.hide, show_resp_headers=False)
+                if response.status_code in self.save_interactions:
+                    self.db_handler.save_interaction(self.payload_index, response.request, response, payload)
+
+            self.payload_index += 1
 
     def trailing_dot_attack(self, method, http_vers, headers, body_data, cookies):
         """
@@ -228,8 +306,11 @@ class BypassFuzzer:
                 if response is not None:
                     success = True
                     self.show_results(
-                        response, payload, self.hide, show_resp_headers=True
-                    )
+                        response, payload, self.hide, show_resp_headers=True)
+                    if response.status_code in self.save_interactions:
+                        self.db_handler.save_interaction(self.payload_index, response.request, response, payload)
+
+                self.payload_index += 1
 
             except requests.exceptions.RequestException as e:
                 print(f"Path payload causing a hang-up: {payload}")
@@ -277,9 +358,13 @@ class BypassFuzzer:
 
             if response is not None:
                 self.show_results(response, method, self.hide, show_resp_headers=True)
+                if response.status_code in self.save_interactions:
+                    self.db_handler.save_interaction(self.payload_index, response.request, response, method)
 
                 if len(response.text) < 1:
                     print("Response length was 0 so probably NOT worth checking out....\n")
+
+            self.payload_index += 1
         
         override_methods = [
             "GET",
@@ -322,7 +407,12 @@ class BypassFuzzer:
                 )
 
                 if response is not None:
-                    self.show_results(response, f"{mop}={om}", self.hide, show_resp_headers=True)
+                    payload = f"{mop}={om}"
+                    self.show_results(response, payload, self.hide, show_resp_headers=True)
+                    if response.status_code in self.save_interactions:
+                        self.db_handler.save_interaction(self.payload_index, response.request, response, payload)
+                
+                self.payload_index += 1
 
 
     def http_proto_attack(self, method, headers, body_data, cookies):
@@ -348,5 +438,8 @@ class BypassFuzzer:
 
             if response is not None:
                 self.show_results(
-                    response, http_vers, self.hide, show_resp_headers=True
-                )
+                    response, http_vers, self.hide, show_resp_headers=True)
+                if response.status_code in self.save_interactions:
+                    self.db_handler.save_interaction(self.payload_index, response.request, response, http_vers)
+
+            self.payload_index += 1
