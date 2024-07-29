@@ -151,8 +151,11 @@ Result:
 ![](images/interaction_1.png)
 
 For simplicity's sake, every time you run the tool, a fresh db is created.
-You can query a specific db via the `--idb` flag
-- NOTE: the db needs to be inside the `interactions` dir to be useable.
+You can query a specific db via the `--idb` flag.  
+
+NOTE: 
+- the db needs to be inside the `interactions` dir to be useable.
+- If no db is specified via `--idb`, the newest one will be used by default.
 
 ```bash
 bypassfuzzer.py --display-by index --display-interactions 49 --idb interactions_20240729_145149.db
