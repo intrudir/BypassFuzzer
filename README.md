@@ -130,6 +130,36 @@ bypassfuzzer.py -u https://example.com/forbidden -hc 403,404,400
 bypassfuzzer.py -u https://example.com/forbidden -hl 638  
 ```
 
+## Display request / response pair that returned 200 OK
+Every successful (200 OK) request & response pair gets saved to a sqlite database.  
+Every payload includes an index number for easy querying.  
+![](images/indexes_example.png)
+
+Once the attack is over, inspect your results and determine the index or payload of the data you'd like to see.  
+You must use BOTH of the following flags:
+- `--display-by` index or payload
+- `--display-interactions` index number or payload string in quotes
+```bash
+# display by index number
+bypassfuzzer.py --display-by index --display-interactions 49
+
+# display by payload
+bypassfuzzer.py --display-by payload --display-interactions "/%2e%2fAJAX/index.php"
+```
+
+Result:  
+![](images/interaction_1.png)
+
+For simplicity's sake, every time you run the tool, a fresh db is created.
+You can query a specific db via the `--idb` flag
+- NOTE: the db needs to be inside the `interactions` dir to be useable.
+
+```bash
+bypassfuzzer.py --display-by index --display-interactions 49 --idb interactions_20240729_145149.db
+```
+![](images/interactions_dir.png)
+
+
 ## Check for OOB / Blind SSRF pingback
 Provide the `--oob` flag with your collaborator or ISH domain
 You need to check for pingbacks yourself as I currently have no way of doing that for you.
@@ -139,5 +169,4 @@ You need to check for pingbacks yourself as I currently have no way of doing tha
 
 # TODO
 - [ ] Add HTTP/2 support
-- [ ] add method to save responses and refer to them later. Similar to kiterunner
 - [ ] Looking for ideas. Ping me on twitter! @intrudir
