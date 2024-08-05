@@ -2,10 +2,11 @@
 import os
 from datetime import datetime
 
+
 class DatabaseHandler:
     def __init__(self, db_dir, db_name=None):
         self.db_dir = db_dir
-        if db_name is None:
+        if db_name is None:  # make new db
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             db_name = f'interactions_{timestamp}.db'
         

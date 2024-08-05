@@ -15,6 +15,7 @@ PAYLOADS_DIR = f"{SCRIPT_DIR}/core/payloads"
 HDR_PAYLOADS_TEMPLATE = f"{PAYLOADS_DIR}/header_payload_templates.txt"
 IP_PAYLOADS_FILE = f"{PAYLOADS_DIR}/ip_payloads.txt"
 URL_PAYLOADS_FILE = f"{PAYLOADS_DIR}/url_payloads.txt"
+DB_DIR = f"{SCRIPT_DIR}/interactions"
 
 # Load banner
 with open(f"{SCRIPT_DIR}/core/banner.txt", "r", encoding="UTF-8") as inf:
@@ -117,7 +118,7 @@ parser.add_argument(
     help="Save interactions matching criteria to a sqlite3 database for easy querying."
 )
 parser.add_argument(
-    "--display-interactions", type=str, default=None, dest="display_interactions",
+    "-di", "--display-interaction", "--display-interactions", type=str, default=None, dest="display_interactions",
     help="Display a specific interaction by index or payload."
 )
 parser.add_argument(
@@ -214,9 +215,9 @@ if __name__ == "__main__":
 
         try:
             if args.display_by == 'index':
-                BypassFuzzer.display_interaction(int(args.display_interactions), by=args.display_by, db_name=args.interaction_db)
+                BypassFuzzer.display_interaction(int(args.display_interactions), args.display_by, DB_DIR, db_name=args.interaction_db)
             else:
-                BypassFuzzer.display_interaction(args.display_interactions, by=args.display_by, db_name=args.interaction_db)
+                BypassFuzzer.display_interaction(args.display_interactions, args.display_by, DB_DIR, db_name=args.interaction_db)
         except FileNotFoundError:
             if args.interaction_db is None:
                 print("No database file was specified or your db dir is empty.")
@@ -230,7 +231,7 @@ if __name__ == "__main__":
     Fuzzer = BypassFuzzer(
         url, proxies, args.smart_filter, hide,
         URL_PAYLOADS_FILE, HDR_PAYLOADS_TEMPLATE,
-        IP_PAYLOADS_FILE, args.oob_payload, args.save_interactions,
+        IP_PAYLOADS_FILE, DB_DIR, args.oob_payload, args.save_interactions,
         db_name=args.interaction_db)
 
 

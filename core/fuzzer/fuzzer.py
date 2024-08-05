@@ -15,8 +15,8 @@ class BypassFuzzer:
     Main class for the fuzzer
     """
 
-    def __init__( self, url, proxies, sfilter, hide, url_payloads_file,
-        hdr_payloads_template, ip_payloads_file, oob_payload, save_interactions,
+    def __init__(self, url, proxies, sfilter, hide, url_payloads_file,
+        hdr_payloads_template, ip_payloads_file, db_dir, oob_payload, save_interactions,
         db_name=None):
         """
         Initialize the fuzzer
@@ -44,13 +44,12 @@ class BypassFuzzer:
             "reset": colorama.Style.RESET_ALL,
         }
 
-        self.db_dir = "interactions"
+        self.db_dir = db_dir
         self.db_handler = DatabaseHandler(self.db_dir, db_name)
         self.save_interactions = save_interactions
 
     @staticmethod
-    def display_interaction(identifier, by='index', db_name=None):
-        db_dir = "interactions"
+    def display_interaction(identifier, by='index', db_dir=None, db_name=None):
         if db_name is None:
             db_name = DatabaseHandler.get_latest_db(db_dir)
 
