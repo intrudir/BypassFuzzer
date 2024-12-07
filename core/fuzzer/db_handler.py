@@ -35,6 +35,11 @@ class DatabaseHandler:
 
     def save_interaction(self, payload_index, request, response, payload):
         cursor = self.conn.cursor()
+        if isinstance(request.body, bytes):
+            request_body = request.body.decode('utf-8') if request.body else ''
+        elif isinstance(request.body, str):
+            request_body = request.body if request.body else ''
+
         cursor.execute('''
             INSERT INTO interactions (id, timestamp, payload, url, method, request_headers, request_body, status_code, response_headers, response_body)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -45,7 +50,7 @@ class DatabaseHandler:
             request.url,
             request.method,
             str(dict(request.headers)),
-            request.body.decode('utf-8') if request.body else '',
+            request_body,
             response.status_code,
             str(dict(response.headers)),
             response.text
