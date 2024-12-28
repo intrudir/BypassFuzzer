@@ -214,8 +214,8 @@ X-Forwarded-Ssl: {OOB PAYLOAD}
 X-Forwarded: {IP PAYLOAD}
 X-Forwarded: {OOB DOMAIN PAYLOAD}
 X-Forwarded: {OOB PAYLOAD}
-X-Forwarder-For: {IP PAYLOAD}
-X-Forwarder-For: {OOB DOMAIN PAYLOAD}
+X-Forwarded-For: {IP PAYLOAD}
+X-Forwarded-For: {OOB DOMAIN PAYLOAD}
 X-HTTP-DestinationURL: {OOB PAYLOAD}
 X-HTTP-DestinationURL: {URL PAYLOAD}
 X-Host: {IP PAYLOAD}
