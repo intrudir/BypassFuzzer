@@ -1,6 +1,8 @@
 from urllib.parse import urlsplit, urlunsplit
 import http.client
 import os
+import threading
+import time
 import colorama
 import requests
 from core.fuzzer.filter import SmartFilter
@@ -21,6 +23,8 @@ class BypassFuzzer:
         """
         Initialize the fuzzer
         """
+        self.paused = False
+        self.pause_cond = threading.Condition()
         self.payload_index = 1
         self.url = url
         self.proxies = proxies
@@ -47,6 +51,75 @@ class BypassFuzzer:
         self.db_dir = db_dir
         self.db_handler = DatabaseHandler(self.db_dir, db_name)
         self.save_interactions = save_interactions
+        
+        # start the pause listener
+        threading.Thread(target=self.pause_listener, daemon=True).start()
+
+    def pause_if_needed(self):
+        with self.pause_cond:
+            while self.paused:
+                self.pause_cond.wait(timeout=0.2)
+
+    def pause_listener(self):
+        while True:
+            cmd = input().strip()
+
+            with self.pause_cond:
+                if cmd == "":
+                    # ENTER toggles pause
+                    self.paused = not self.paused
+                    state = "PAUSED" if self.paused else "RESUMED"
+                    if state == "PAUSED":
+                        print(f"\n[*] Scan {state} - Enter \"help\" for options")
+                    else:
+                        print(f"\n[*] Scan {state}")
+                    self.pause_cond.notify_all()
+
+                elif cmd.startswith("set "):
+                    # Example: set save_interactions [200,302]
+                    try:
+                        _, expr = cmd.split(" ", 1)
+                        key, val = expr.split("=", 1)
+                        key = key.strip()
+                        if key == "smart":
+                            val = val.strip().lower() in ["on", "true", "1", "yes"]
+                            if val is True:
+                                self.filter = SmartFilter(repeats=8)
+                            else:
+                                self.filter = None
+                            print(f"[*] Smart filter has been set to {val}")
+                        
+                        elif key == "save_interactions":
+                            # need to validate that its a list like [200,302] 
+                            try:
+                                val = eval(val.strip())
+                                if isinstance(val, list):
+                                    self.save_interactions = val
+                                    print(f"[*] save_interactions has been set to {val}")
+                                else:
+                                    print("[!] save_interactions must be a list of status codes, e.g. [200,302]")
+                            except Exception as e:
+                                print("[!] Failed to set save_interactions. Must be a list of status codes, e.g. [200,302]")
+                        else: 
+                            print(f"Unknown variable: {key}")
+
+                    except Exception as e:
+                        print(f"[!] Failed to set value: {e}")
+
+                elif cmd == "status":
+                    print("\n[*] Current fuzzer state:")
+                    print(f"smart={'on' if self.filter else 'off'}")
+                    print(f"save_interactions={self.save_interactions}")
+
+                elif cmd == "help":
+                    print("""
+    ENTER              toggle pause/resume
+    set X=Y            change fuzzer variable
+    status             show fuzzer state and variables
+    help               show this help
+    """)
+                else:
+                    print("[!] Unknown command. Type \"help\" for options.")
 
     @staticmethod
     def display_interaction(identifier, by='index', db_dir=None, db_name=None):
@@ -163,6 +236,8 @@ class BypassFuzzer:
         og_headers = headers.copy()
 
         for payload in self.header_payloads:
+            self.pause_if_needed()
+
             response = funcs.send_header_attack(
                 session, self.url, method, headers, body_data, cookies, payload
             )
@@ -234,6 +309,8 @@ class BypassFuzzer:
         session.proxies = self.proxies
 
         for payload in self.url_payloads:
+            self.pause_if_needed()
+            
             response = funcs.send_url_attack(
                 session, payload, method, headers, body_data, cookies
             )
