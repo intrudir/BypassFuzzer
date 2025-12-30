@@ -9,9 +9,10 @@ class SmartFilter:
         # the number of repeats allowed before muting future responses
         self._repeats = repeats
 
-    def check(self, status, wordlen):
+    def check(self, status, wordlen, content_type):
+        # add content-type to the key?
         # We make a directory key by concating status code + number of words
-        key = str(status) + str(wordlen)
+        key = str(status) + str(wordlen) + str(content_type)
         # if never seen this key before, add it to the dictionary with 1 hit
         if key not in self.db:
             self.db[key] = 1

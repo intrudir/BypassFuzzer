@@ -111,8 +111,8 @@ class BypassFuzzer:
         """
         Show the results of the attack
         """
-
-        msg = f"I: {self.payload_index}\t Response Code: {response.status_code}\tLength: {len(response.text)}\tPayload: {payload}"
+        content_type = response.headers.get("Content-Type", "N/A")
+        msg = f"I: {self.payload_index}\t Response Code: {response.status_code}\tLength: {len(response.text)}\tType: {content_type}\tPayload: {payload}"
 
         if response.status_code > 400:  # errors
             msg = self.colors["red"] + msg
@@ -123,7 +123,7 @@ class BypassFuzzer:
             msg = self.colors["green"] + msg
 
         if self.filter:
-            if self.filter.check(response.status_code, str(len(response.text))):
+            if self.filter.check(response.status_code, len(response.text), content_type):
                 print(msg)
 
                 if show_resp_headers:
