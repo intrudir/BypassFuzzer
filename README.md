@@ -1,6 +1,9 @@
 # Bypass Fuzzer
 The original 403fuzzer.py :)
 
+==Note: This has been deprecated for my new, shiny burp extension that is 1000000% better. Thank you for using my tools!==
+
+
 **Fuzz 401/403ing endpoints for bypasses**
 
 Perform various checks via headers, path normalization, verbs, etc. to attempt to bypass ACL's or URL validation.
