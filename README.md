@@ -3,6 +3,7 @@ The original 403fuzzer.py :)
 
 ==Note: This has been deprecated for my new, shiny burp extension that is 1000000% better. Thank you for using my tools!==
 
+You can find the extension here: https://github.com/intrudir/BypassFuzzer-Burp
 
 **Fuzz 401/403ing endpoints for bypasses**
 
